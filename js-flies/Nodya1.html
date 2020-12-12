@@ -1,0 +1,424 @@
+<style>
+    textarea{
+        height: 400px;
+    }
+
+    output-wrap{
+        display: grid;
+        grid-template-columns: 300px 300px 300px;
+        grid-row-gap: 30px;
+    }
+
+    .menu{
+        display: grid;
+        grid-template-columns: 300px 150px;
+        grid-column-gap: 30px;
+    }
+
+    .menu > div{
+        display: grid;
+        grid-row-gap: 20px;
+        grid-template-rows: 70px 70px 70px auto;   
+    }
+
+    button{
+        font-size: 16px;
+    }
+
+    .status{
+        border: 2px solid;
+        padding: 10px;
+        font-size: 18px;
+    }
+</style>
+
+<div class="menu">
+    <textarea>
+var
+    a, b, c;
+begin
+    c = 2;
+    a = c + 7;
+    b = (c + c) * a;
+end
+    </textarea>
+    <div>
+        <button id='firstStep'>Лексический анализ от Нади</button>
+        <button id='secondStep'>Синтаксический анализ от Нади</button>
+        <button id='thirdStep'>Семантический анализ от Нади</button>
+        <div class="status"></div>
+    </div>
+</div>
+
+<div class="output-wrap">
+    <div>
+        <h2>Лексический анализ:</h2>
+        <div class="output"></div>
+    </div>
+    
+</div>
+
+
+
+<script>
+    let firstStep = document.querySelector('#firstStep');
+    let secondStep = document.querySelector('#secondStep');
+
+    let tokens = {
+        t_identifier: 't_identifier',
+        t_const: 't_const',
+        t_var: 't_var',
+        t_begin: 't_begin',
+        t_end: 't_end',
+        t_open_par: 't_open_par',
+        t_close_par: 't_close_par',
+        t_comma: 't_comma',
+        t_semicolon: 't_semicoloon',
+        t_assign: 't_assign',
+        t_plus: 't_plus',
+        t_minus: 't_minus',
+        t_multiply: 't_multiply',
+        t_divide: 't_multiply',
+        t_eos: 't_eos',
+    };
+
+    let nonTerm = {
+        nts_s: 'nts_s',
+        nts_var_dec: 'nts_var_dec',
+        nts_var_assign: 'nts_var_assign',
+        nts_var_dec_list: 'nts_var_dec_list',
+        nts_var_dec_list_: 'nts_var_dec_list_',
+        nts_var_assign_list: 'nts_var_assign_list',
+        nts_assign: 'nts_assign',
+        nts_expr: 'nts_expr',
+        nts_t: 'nts_t',
+        nts_e: 'nts_e',
+        nts_e_: 'nts_e_',
+        nts_t_: 'nts_t_',
+        nts_f: 'nts_f',
+        nts_value: 'nts_value',
+    };
+
+    console.log(Object.keys(tokens).indexOf('t_end'));
+
+    let textarea = document.querySelector('textarea');
+    let output = document.querySelector('.output');
+    let word = '';
+    let wordIdentRes = '';
+    let lexemResult = [];
+    let nStr = 1;
+    
+    firstStep.addEventListener('click', lexemAnalyse, false);
+    secondStep.addEventListener('click', syntaxAnalyse, false);
+     
+    function identWord(word, nStr){
+        switch(word){
+            case '':
+                return undefined;
+            case 'begin':
+                return {type:'separator', lexem: 'begin', nStr: nStr, token: tokens.t_begin};
+            case 'end':
+                return {type: 'separator', lexem: 'end', nStr: nStr, token: tokens.t_end};
+            case 'var':
+                return {type: 'keyword', lexem: 'var', nStr: nStr, token: tokens.t_var};
+            default:
+                return {type: 'identifier', lexem: word, nStr: nStr, token: tokens.t_indentifier};
+        }
+    }
+
+    function lexemAnalyse(){
+
+        let inputData = textarea.value;
+        let lexemResult = [];
+        let status = document.querySelector('.status');
+        let token = ''
+
+        for (let i = 0; i < inputData.length; i++) {
+            switch (inputData[i]) {
+                case ',':
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    lexemResult.push({type: 'separator', lexem: inputData[i], nStr: nStr, token: tokens.t_comma});
+                    word = '';
+                    break;
+                case ';':
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    lexemResult.push({type: 'separator', lexem: inputData[i], nStr: nStr, token: tokens.t_semicoloon});
+                    word = '';
+                    break;
+                case '(': 
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    lexemResult.push({type: 'separator', lexem: inputData[i], nStr: nStr, token: tokens.t_open_par});
+                    word = '';
+                    break;
+                case ')':
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    lexemResult.push({type: 'separator', lexem: inputData[i], nStr: nStr, token: tokens.t_close_par});
+                    word = '';
+                    break;
+
+                case '\r': case '\t': case ' ':
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    word = '';
+                    break;
+
+                case '\n':
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    word = '';
+                    nStr++;
+                    break;
+
+                case '=': 
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    lexemResult.push({ type: 'operator', lexem: inputData[i], nStr: nStr, token: tokens.t_assign});
+                    word = '';
+                    break;
+                case '+': 
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    lexemResult.push({ type: 'operator', lexem: inputData[i], nStr: nStr, token: tokens.t_plus});
+                    word = '';
+                    break;
+                case '*': 
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    lexemResult.push({type: 'operator', lexem: inputData[i], nStr: nStr, token: tokens.t_multiply});
+                    word = '';
+                    break;
+                case '/':
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    lexemResult.push({type: 'operator', lexem: inputData[i], nStr: nStr, token: tokens.t_divide});
+                    word = '';
+                    break;
+
+                case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+                    wordIdentRes = identWord(word, nStr);
+                    if (wordIdentRes != undefined) lexemResult.push(wordIdentRes);
+                    lexemResult.push({type: 'const', lexem: inputData[i], nStr: nStr, token: tokens.t_const});
+                    word = '';
+                    break;
+               
+                default:
+                    if(inputData[i].charCodeAt() >= 97 && inputData[i].charCodeAt() <= 122){
+                        word += inputData[i];
+                    }else{
+                        let errMes = `Ошибка лексичиского анализа, неизвестный символ: ${inputData[i]}`;
+                        status.textContent = errMes;
+                        status.style.color = 'red';
+                        output.innerHTML = 'Ошибка работы анализатора: Брат, ну не пиши фигню всякую пожалуйста';
+                        throw new Error(errMes);
+                    }
+                    
+            }
+        }
+
+        status.textContent = 'Успешная работа анализатора';
+        status.style.color = 'green';
+        output.innerHTML = JSON.stringify(lexemResult);
+    }
+
+
+    function syntaxAnalyse(){
+
+        let lexems = lexemResult;
+        let symbols = [];
+        let parseTable = [];
+
+        lexems.push({type: '$', lexem: 'EOS', nStr: nStr + 1, token: tokens.t_eos});
+
+        // 0 -> term    1 -> nonterm
+        symbols.push({key: Object.keys(tokens).indexOf('t_eos'), value: 0});
+        symbols.push({key: Object.keys(nonTerm).indexOf('nts_s'), value: 1});
+
+        for(let i = 0; i < 14; i++){
+            parseTable.push([]);
+            for(let j = 0; j < 17; j++){
+                parseTable[i].push(-1);
+            }
+        }
+
+        parseTable[Object.keys(nonTerm).indexOf('nts_s')][Object.keys(tokens).indexOf('t_var')] = 1;
+        parseTable[Object.keys(nonTerm).indexOf('nts_var_dec')][Object.keys(tokens).indexOf('t_var')] = 2;
+        parseTable[Object.keys(nonTerm).indexOf('nts_var_dec_list')][Object.keys(tokens).indexOf('t_identifier')] = 3;
+        parseTable[Object.keys(nonTerm).indexOf('nts_var_dec_list_')][Object.keys(tokens).indexOf('t_comma')] = 4;
+        parseTable[Object.keys(nonTerm).indexOf('nts_var_dec_list_')][Object.keys(tokens).indexOf('t_semicolon')] = 5;
+        parseTable[Object.keys(nonTerm).indexOf('nts_var_assign')][Object.keys(tokens).indexOf('t_begin')] = 6;
+        parseTable[Object.keys(nonTerm).indexOf('nts_var_assign_list')][Object.keys(tokens).indexOf('t_identifier')] = 7;
+        parseTable[Object.keys(nonTerm).indexOf('nts_var_assign_list')][Object.keys(tokens).indexOf('t_end')] = 8;
+        parseTable[Object.keys(nonTerm).indexOf('nts_var_assign')][Object.keys(tokens).indexOf('t_identifier')] = 9;
+        parseTable[Object.keys(nonTerm).indexOf('nts_expr')][Object.keys(tokens).indexOf('t_identifier')] = 10;
+        parseTable[Object.keys(nonTerm).indexOf('nts_t')][Object.keys(tokens).indexOf('t_identifier')] = 14;
+        parseTable[Object.keys(nonTerm).indexOf('nts_f')][Object.keys(tokens).indexOf('t_identifier')] = 20;
+        parseTable[Object.keys(nonTerm).indexOf('nts_value')][Object.keys(tokens).indexOf('t_identifier')] = 21;
+        parseTable[Object.keys(nonTerm).indexOf('nts_expr')][Object.keys(tokens).indexOf('t_const')] = 10;
+        parseTable[Object.keys(nonTerm).indexOf('nts_t')][Object.keys(tokens).indexOf('t_const')] = 14;
+        parseTable[Object.keys(nonTerm).indexOf('nts_f')][Object.keys(tokens).indexOf('t_const')] = 20;
+        parseTable[Object.keys(nonTerm).indexOf('nts_value')][Object.keys(tokens).indexOf('t_const')] = 22;
+        parseTable[Object.keys(nonTerm).indexOf('nts_t_')][Object.keys(tokens).indexOf('t_plus')] = 11;
+        parseTable[Object.keys(nonTerm).indexOf('nts_t_')][Object.keys(tokens).indexOf('t_minus')] = 12;
+        parseTable[Object.keys(nonTerm).indexOf('nts_t_')][Object.keys(tokens).indexOf('t_semicolon')] = 17;
+        parseTable[Object.keys(nonTerm).indexOf('nts_e_')][Object.keys(tokens).indexOf('t_semicolon')] = 13;
+        parseTable[Object.keys(nonTerm).indexOf('nts_expr')][Object.keys(tokens).indexOf('t_minus')] = 10;
+        parseTable[Object.keys(nonTerm).indexOf('nts_t')][Object.keys(tokens).indexOf('t_minus')] = 14;
+        parseTable[Object.keys(nonTerm).indexOf('nts_f')][Object.keys(tokens).indexOf('t_minus')] = 19;
+        parseTable[Object.keys(nonTerm).indexOf('nts_expr')][Object.keys(tokens).indexOf('t_open_par')] = 10;
+        parseTable[Object.keys(nonTerm).indexOf('nts_t')][Object.keys(tokens).indexOf('t_open_par')] = 14;
+        parseTable[Object.keys(nonTerm).indexOf('nts_f')][Object.keys(tokens).indexOf('t_open_par')] = 18;
+        parseTable[Object.keys(nonTerm).indexOf('nts_t_')][Object.keys(tokens).indexOf('t_close_par')] = 17;
+        parseTable[Object.keys(nonTerm).indexOf('nts_e_')][Object.keys(tokens).indexOf('t_close_par')] = 13;
+        parseTable[Object.keys(nonTerm).indexOf('nts_t_')][Object.keys(tokens).indexOf('t_multiply')] = 15;
+        parseTable[Object.keys(nonTerm).indexOf('nts_t_')][Object.keys(tokens).indexOf('t_close_par')] = 16;
+
+        let position = 0;
+
+        while(symbols.length > 0){
+            let currentSymbol = symbols[symbols.length - 1];
+
+            if(!symbols.value){
+                if(lexems[position].token == currentSymbol.key){
+                    console.log(`matched: {${lexems[position].toString()}}`);
+                    symbols.pop();
+                    if(lexems[position].token == tokens.t_eos){
+                        console.log('syntax error errors: input accepted');
+                        return;
+                    }
+                    position++;
+                }else{
+                    console.log(`syntex error: unexepcted ${lexems[position].token} `);
+                    console.log(symbols);
+                }
+            }else{
+                let currentRule = parseTable[currentSymbol.key][]
+
+                switch(currentRule){
+                    case 1:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 2:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 3:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 4:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 5:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 6:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 7:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 8:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 9:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 10:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 11:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 12:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 13:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 14:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 15:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 16:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 17:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 18:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 19:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 20:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 21:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    case 21:
+                        symbols.pop();
+                        symbols.push()
+                        symbols.push();
+                        break;
+                    default:
+                        console.log('sytax error: unexepected');
+                        console.log(symbols);
+                }
+            }
+        }
+    
+    }
+
+    
+
+    
+</script>
+
