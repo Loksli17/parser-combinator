@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.varDecParser = exports.logicalParser = exports.strToTerm = exports.strToStr = void 0;
+exports.varDecParser = exports.endParser = exports.beginParser = exports.logicalParser = exports.varParser = exports.strToEqualStr = exports.strToTerm = exports.strToStr = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 const fs = __importStar(require("fs"));
 const combin = __importStar(require("./combin"));
@@ -45,6 +45,17 @@ strToTerm = (reg_, status_) => {
             input: str_.replace(arr[0], ''),
         };
     });
+}, strToEqualStr = (reg_) => {
+    return new ParseModel_1.default((str_) => {
+        let arr = str_.match(reg_), bool;
+        if (arr == null)
+            return null;
+        bool = arr[0] == str_;
+        return !bool ? null : {
+            result: str_,
+            input: '',
+        };
+    });
 }, varParser = combin.monadBind(strToStr(/var/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         return {
@@ -65,6 +76,24 @@ strToTerm = (reg_, status_) => {
             input: input_,
         };
     });
+}), beginParser = combin.monadBind(strToStr(/begin/ig), (res_) => {
+    return new ParseModel_1.default((input_) => {
+        if (res_ == null)
+            return null;
+        return {
+            result: 'Begin',
+            input: input_,
+        };
+    });
+}), endParser = combin.monadBind(strToStr(/end/ig), (res_) => {
+    return new ParseModel_1.default((input_) => {
+        if (res_ == null)
+            return null;
+        return {
+            result: 'End',
+            input: input_,
+        };
+    });
 }), varDecParser = new ParseModel_1.default((str_) => {
     //регулярка в logicalParser не забыть про пробелы
     let parserIdent = strToStr(/\b((?!begin|var|end)([a-z]+))\b/ig), parserSepar = strToStr(/([\(\),;]|begin|end)/ig), combinIdentSepar = combin.seqAppR(parserIdent, parserSepar), varListParser = combin.many(combinIdentSepar);
@@ -72,7 +101,11 @@ strToTerm = (reg_, status_) => {
 });
 exports.strToTerm = strToTerm;
 exports.strToStr = strToStr;
+exports.strToEqualStr = strToEqualStr;
+exports.varParser = varParser;
 exports.logicalParser = logicalParser;
+exports.beginParser = beginParser;
+exports.endParser = endParser;
 exports.varDecParser = varDecParser;
 // console.log(stringToTerminal(/(var)/ig,                           TypeStatus.keyword).parse(fileData));
 // console.log(stringToTerminal(/([\(\),;]|begin|end)/ig,            TypeStatus.separator).parse(fileData));

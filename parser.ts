@@ -30,6 +30,23 @@ let
         });
     },
 
+    strToEqualStr = (reg_: RegExp): Parser => {
+        return new Parser((str_: string): object | null => {
+            let 
+                arr : RegExpMatchArray | null = str_.match(reg_),
+                bool: boolean;
+
+            if(arr == null) return null;
+
+            bool = arr[0] == str_;
+
+            return !bool ? null : {
+                result: str_,
+                input : '',
+            };
+        });
+    },
+
     varParser = combin.monadBind(strToStr(/var/ig), (res_: string): Parser => {
         return new Parser((input_: string): object | null => {
             return {
@@ -54,6 +71,30 @@ let
         });
     }),
 
+    beginParser = combin.monadBind(strToStr(/begin/ig), (res_: string): Parser => {
+        return new Parser((input_: string) => {
+
+            if(res_ == null) return null;
+
+            return {
+                result: 'Begin',
+                input : input_, 
+            }
+        });
+    }),
+
+    endParser = combin.monadBind(strToStr(/end/ig), (res_: string): Parser => {
+        return new Parser((input_: string) => {
+
+            if(res_ == null) return null;
+
+            return {
+                result: 'End',
+                input : input_, 
+            }
+        });
+    }),
+
     varDecParser = new Parser((str_: string) => {
 
         //регулярка в logicalParser не забыть про пробелы
@@ -66,7 +107,20 @@ let
         return combin.seqAppR(varParser, combin.seqAppL(varListParser, logicalParser));
     });
 
-export {strToStr, strToTerm, logicalParser, varDecParser};
+    
+
+export {
+    strToStr, 
+    strToTerm, 
+    strToEqualStr,
+
+    varParser, 
+    logicalParser, 
+    beginParser, 
+    endParser, 
+    
+    varDecParser
+};
 
 
 // console.log(stringToTerminal(/(var)/ig,                           TypeStatus.keyword).parse(fileData));

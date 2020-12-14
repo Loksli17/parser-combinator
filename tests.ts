@@ -81,6 +81,9 @@ res = alternativeParser.parse("kek = 1");
 console.log('alternative: ', res);
 
 
+//test seqApp
+// let parserTestSeq = combin.seqApp(identParser, separParser).parse(() => {});
+
 
 //test seqAppL
 let
@@ -104,35 +107,53 @@ res = lexSeparParser1.parse('xAr, ytt, zer')
 console.log('lexSeparParse', res);
 
 
-//test variable-list parser how to do
-//variant 1 - not correct
+
+//VAR LIIIIIIIST test variable-list parser how to do
+//variant 1 - with while whan res not null (not correct, example places down)
 res.input = 'asd, asd asd, asd, asd, ,';
 
 do{
-    res = parser.strToStr(/([a-z]+\s*,)/ig).parse(res.input);
+    res = parser.strToStr(/(\b((?!begin|var|end)([a-z]+))\b\s*,)/ig).parse(res.input);
     console.log(res);
 }while(res != null)
 
-//variant2 i will try
-let alternativeParser = combin.monadBind(
-    combin.alternative(parser.strToStr(/([a-z]+|,)/ig), parser.strToStr(/[a-z]+\s*,/ig)),
-    (res_: string): Parser => {
-        return new Parser((input_: string) => {
-            if(res_.match(/([a-z]+|,)/))
-        })
-    }
-);
+//variant2 - it is better than before
+let parserVarList = parser.strToStr(/(\s*\b((?!begin|var|end)([a-z]+))\b,\s*)+(\b((?!begin|var|end)([a-z]+))\b)/ig);
+console.log(parserVarList.parse('asd, asd, gfd, dfg'));
+//если null или не пустой input нужно делать ошибку, надо подумать как скомбинить возвращение не пустого input и не понятно что делать с лишними пробелами
+
+//variant3
+//Здесь идет полное сравние строки и результат регулярного выражения, чтобы находить ОДИН идент
+//парсер ниже можно скомбинировать с помощью alternative
+let parserIdentTest     = parser.strToEqualStr(/\b((?!begin|var|end)([a-z]+))\b/ig);
+//parsers for listIdent
+let parserIdentSeparStr = parser.strToStr(/((\b((?!begin|var|end)([a-z]+))\b\s*,)|\b((?!begin|var|end)([a-z]+))\b)/ig);
+let parserIdentSepar    = combin.seqAppR(parserIdentSeparStr, parser.strToStr(/,/g));
+parserIdentSepar = combin.monadBind(parserIdentSepar, (res_: string): Parser => {
+    return new Parser((input_: string) => {
+
+        console.log(res_, input_);
+
+        if(res_ == null && input_ != null){
+            return 'error with ,';
+        }else if(res_ == null){
+            return 'error with ident'; //не найден идентификатор
+        }
+
+        return {
+            result: `${input_}${res_}`, 
+            input : input_.replace(res_, ''),
+        }
+    });
+});
+
+console.log('/n/n ident list');
+console.log(parserIdentSepar.parse(','));
+// console.log(parserIdentTest.parse('kek'));
 
 
-
-
-
-
-//test many
-// let
-//     manyParser = combin.many(parser.strToStr(/[a-z]+/ig));
-
-// console.log(manyParser.parse('zasd zsd sda dsd'));
+//вопросы
+//1.
 
 
 

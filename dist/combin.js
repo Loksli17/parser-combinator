@@ -51,7 +51,6 @@ seqAppL = (p_, q_) => {
         let resP = p_.parse(input);
         if (resP == null)
             return null;
-        //тут точно result надо может быть input? (раньше был result)
         let resQ = q_.parse(resP.result);
         if (resQ == null)
             return null;
@@ -62,15 +61,16 @@ seqAppL = (p_, q_) => {
 seqAppR = (p_, q_) => {
     return new ParseModel_1.default((input) => {
         let resP = p_.parse(input);
-        console.log('seqAppL.resultP:', resP);
         if (resP == null)
             return null;
-        //тут точно result надо может быть input?
         let resQ = q_.parse(resP.result);
-        console.log('seqAppL.resultL:', resQ);
+        //я хочу поменять тут null
         if (resQ == null)
-            return null;
-        return [resQ.result, resQ.input];
+            return { result: null, input: resP.result };
+        return {
+            result: resQ.result,
+            input: resQ.input,
+        };
     });
 }, many = (p_) => {
     return alternative(many1(p_), pure([]));

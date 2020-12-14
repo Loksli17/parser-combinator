@@ -55,7 +55,6 @@ let
             let resP = p_.parse(input);
             if(resP == null) return null; 
 
-            //тут точно result надо может быть input? (раньше был result)
             let resQ = q_.parse(resP.result);
             if(resQ == null) return null;
             return [resQ.result, resP.input];
@@ -66,14 +65,15 @@ let
     seqAppR = (p_: Parser, q_: Parser): Parser => {
         return new Parser((input: any) => {
             let resP = p_.parse(input);
-            console.log('seqAppL.resultP:', resP);
             if(resP == null) return null;
             
-            //тут точно result надо может быть input?
             let resQ = q_.parse(resP.result);
-            console.log('seqAppL.resultL:', resQ);
-            if(resQ == null) return null;
-            return [resQ.result, resQ.input];
+            //я хочу поменять тут null
+            if(resQ == null) return {result: null, input: resP.result};
+            return {
+                result: resQ.result,
+                input : resQ.input,
+            };
         });
     },
 
