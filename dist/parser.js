@@ -22,49 +22,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.varDecParser = exports.varListParser = exports.binaryParser = exports.identParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.logicalParser = exports.varParser = exports.strToEqualStr = exports.strToTerm = exports.strToStr = void 0;
+exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 const fs = __importStar(require("fs"));
 const combin = __importStar(require("./combin"));
 let result, fileData = fs.readFileSync('data.txt', 'utf-8');
-let 
-//@return Parser string -> Lexem
-strToTerm = (reg_, status_) => {
-    return new ParseModel_1.default((str_) => {
-        let arr = str_.match(reg_);
-        return arr == null ? null : {
-            result: { lexem: arr[0], type: status_, numStr: 0 },
-            input: str_.replace(arr[0], ''),
-        };
-    });
-}, strToStr = (reg_) => {
-    return new ParseModel_1.default((str_) => {
-        str_ = str_.replace(/^\s*/, '');
-        let arr = str_.match(reg_);
-        return arr == null ? null : {
-            result: arr[0],
-            input: str_.replace(arr[0], ''),
-        };
-    });
-}, strToEqualStr = (reg_) => {
-    return new ParseModel_1.default((str_) => {
-        let arr = str_.match(reg_), bool;
-        if (arr == null)
-            return null;
-        bool = arr[0] == str_;
-        return !bool ? null : {
-            result: str_,
-            input: '',
-        };
-    });
-}, varParser = combin.monadBind(strToStr(/^var\s+/ig), (res_) => {
+let varParser = combin.monadBind(combin.genTerm(/^var\s+/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         return {
             result: 'Var\n',
             input: input_,
         };
     });
-}), logicalParser = combin.monadBind(strToStr(/^:\s*logical\s*;/ig), (res_) => {
+}), logicalParser = combin.monadBind(combin.genTerm(/^logical\s*;/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         res_ = res_.replace(/\s/g, '');
         if (res_ == null)
@@ -77,7 +47,7 @@ strToTerm = (reg_, status_) => {
             input: input_,
         };
     });
-}), beginParser = combin.monadBind(strToStr(/^begin/ig), (res_) => {
+}), beginParser = combin.monadBind(combin.genTerm(/^begin/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         if (res_ == null)
             return null;
@@ -86,7 +56,7 @@ strToTerm = (reg_, status_) => {
             input: input_,
         };
     });
-}), endParser = combin.monadBind(strToStr(/^end/ig), (res_) => {
+}), endParser = combin.monadBind(combin.genTerm(/^end/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         if (res_ == null)
             return null;
@@ -95,7 +65,7 @@ strToTerm = (reg_, status_) => {
             input: input_,
         };
     });
-}), equalParser = combin.monadBind(strToStr(/^:=/ig), (res_) => {
+}), equalParser = combin.monadBind(combin.genTerm(/^:=/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         if (res_ == null)
             return null;
@@ -104,7 +74,7 @@ strToTerm = (reg_, status_) => {
             input: input_,
         };
     });
-}), unaryParser = strToStr(/^!/ig), binaryParser = combin.monadBind(strToStr(/^[\|\^\&]/ig), (res_) => {
+}), unaryParser = combin.genTerm(/^!/ig), binaryParser = combin.monadBind(combin.genTerm(/^[\|\^\&]/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         let result = '';
         if (res_ == null)
@@ -125,17 +95,20 @@ strToTerm = (reg_, status_) => {
             input: input_,
         };
     });
-}), identParser = strToStr(/^\b((?!begin|var|end)([a-z]+))\b/ig), varListParser = new ParseModel_1.default((str_) => {
-    let parserIdent = combin.alternative(identParser, combin.empty()), parserSepar = combin.alternative(strToStr(/^,:/ig), combin.empty());
-    console.log('varList', str_ = parserIdent.parse(str_).input);
-    console.log('varList', parserSepar.parse(str_));
-}), varDecParser = new ParseModel_1.default((str_) => {
-    let parserIdent = strToStr(/\b((?!begin|var|end)([a-z]+))\b/ig), parserSepar = strToStr(/([\(\),;]|begin|end)/ig), combinIdentSepar = combin.seqAppR(parserIdent, parserSepar), varListParser = combin.many(combinIdentSepar);
-    return combin.seqAppR(varParser, combin.seqAppL(varListParser, logicalParser));
+}), identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig), commaParser = combin.genTerm(/^,/ig), colonParser = combin.genTerm(/^:/ig), identListParser = new ParseModel_1.default((str_) => {
+    let identCommaParser = combin.seqApp(identParser, commaParser, (resL_, resR_) => {
+        return {
+            result: `${resL_.result}${resR_.result}`,
+            input: resR_.input,
+        };
+    }), identColonParser = combin.seqApp(identParser, colonParser, (resL_, resR_) => {
+        return {
+            result: `${resL_.result}${resR_.result}`,
+            input: resR_.input,
+        };
+    }), identCommaListParser = combin.repeat(identCommaParser);
+    console.log(identCommaListParser.parse(str_));
 });
-exports.strToTerm = strToTerm;
-exports.strToStr = strToStr;
-exports.strToEqualStr = strToEqualStr;
 exports.varParser = varParser;
 exports.logicalParser = logicalParser;
 exports.beginParser = beginParser;
@@ -144,8 +117,7 @@ exports.equalParser = equalParser;
 exports.unaryParser = unaryParser;
 exports.binaryParser = binaryParser;
 exports.identParser = identParser;
-exports.varListParser = varListParser;
-exports.varDecParser = varDecParser;
+exports.identListParser = identListParser;
 // console.log(stringToTerminal(/(var)/ig,                           TypeStatus.keyword).parse(fileData));
 // console.log(stringToTerminal(/([\(\),;]|begin|end)/ig,            TypeStatus.separator).parse(fileData));
 // console.log(stringToTerminal(/[01]/ig,                            TypeStatus.const).parse(fileData));

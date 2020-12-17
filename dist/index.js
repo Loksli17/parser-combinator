@@ -20,11 +20,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = __importStar(require("fs"));
-const parser = __importStar(require("./parser"));
 let fileData = fs.readFileSync('data.txt', 'utf-8');
-//greate success
-console.log('logical parser: ', parser.logicalParser.parse('logical ; a = a ^ (a | a) & 1'));
-console.log('var parser: ', parser.varParser.parse('  y, vAr sdf, a: logical;'));
-console.log('begin parser: ', parser.beginParser.parse('   begin \n a = !a'));
-console.log('end parser: ', parser.endParser.parse(' end'));
-console.log('var list parser: ', parser.varListParser.parse('kek, lol, dfsdf :logical;'));
+// console.log('logical parser: ', parser.logicalParser.parse(':  logical ; a = a ^ (a | a) & 1'));
+// console.log('var parser: ', parser.varParser.parse(' vAr y, sdf, a: logical;'));
+// console.log('begin parser: ', parser.beginParser.parse('   begin \n a = !a'));
+// console.log('end parser: ', parser.endParser.parse(' end'));
+// console.log('var list parser: ', parser.varListParser.parse('kek, lol, dfsdf :logical;'));

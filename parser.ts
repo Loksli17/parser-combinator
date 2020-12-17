@@ -9,46 +9,7 @@ let
     fileData: string = fs.readFileSync('data.txt', 'utf-8');
 
 let 
-    //@return Parser string -> Lexem
-    strToTerm = (reg_: RegExp, status_: TypeStatus): Parser => {
-        return new Parser((str_: string): object | null => {
-            let arr: RegExpMatchArray | null = str_.match(reg_);
-            return arr == null ? null : {
-                result: {lexem: arr[0], type: status_, numStr: 0},
-                input : str_.replace(arr[0], ''),
-            };
-        });
-    },
-
-    strToStr = (reg_: RegExp): Parser => {
-        return new Parser((str_: string): object | null => {
-            str_ = str_.replace(/^\s*/, '');
-            let arr: RegExpMatchArray | null = str_.match(reg_);
-            return arr == null ? null : {
-                result: arr[0],
-                input : str_.replace(arr[0], ''),
-            }
-        });
-    },
-
-    strToEqualStr = (reg_: RegExp): Parser => {
-        return new Parser((str_: string): object | null => {
-            let 
-                arr : RegExpMatchArray | null = str_.match(reg_),
-                bool: boolean;
-
-            if(arr == null) return null;
-
-            bool = arr[0] == str_;
-
-            return !bool ? null : {
-                result: str_,
-                input : '',
-            };
-        });
-    },
-
-    varParser = combin.monadBind(strToStr(/^var\s+/ig), (res_: string): Parser => {
+     varParser = combin.monadBind(combin.genTerm(/^var\s+/ig), (res_: string): Parser => {
         return new Parser((input_: string): object | null => {
             return {
                 result: 'Var\n',
@@ -57,7 +18,7 @@ let
         });
     }),
 
-    logicalParser = combin.monadBind(strToStr(/^:\s*logical\s*;/ig), (res_: string): Parser => {
+    logicalParser = combin.monadBind(combin.genTerm(/^logical\s*;/ig), (res_: string): Parser => {
         return new Parser((input_: string): object | null => {
             res_ = res_.replace(/\s/g, '');
             if(res_ == null) return null;
@@ -72,7 +33,7 @@ let
         });
     }),
 
-    beginParser = combin.monadBind(strToStr(/^begin/ig), (res_: string): Parser => {
+    beginParser = combin.monadBind(combin.genTerm(/^begin/ig), (res_: string): Parser => {
         return new Parser((input_: string): object | null => {
 
             if(res_ == null) return null;
@@ -84,7 +45,7 @@ let
         });
     }),
 
-    endParser = combin.monadBind(strToStr(/^end/ig), (res_: string): Parser => {
+    endParser = combin.monadBind(combin.genTerm(/^end/ig), (res_: string): Parser => {
         return new Parser((input_: string): object | null => {
 
             if(res_ == null) return null;
@@ -96,7 +57,7 @@ let
         });
     }),
 
-    equalParser = combin.monadBind(strToStr(/^:=/ig), (res_: string): Parser => {
+    equalParser = combin.monadBind(combin.genTerm(/^:=/ig), (res_: string): Parser => {
         return new Parser((input_: string): object | null => {
 
             if(res_ == null) return null;
@@ -108,9 +69,9 @@ let
         });
     }),
 
-    unaryParser = strToStr(/^!/ig),
+    unaryParser = combin.genTerm(/^!/ig),
 
-    binaryParser = combin.monadBind(strToStr(/^[\|\^\&]/ig), (res_: string): Parser => {
+    binaryParser = combin.monadBind(combin.genTerm(/^[\|\^\&]/ig), (res_: string): Parser => {
         return new Parser((input_: string) => {
 
             let result: string = '';
@@ -136,48 +97,50 @@ let
         });
     }),
 
-    identParser = strToStr(/^\b((?!begin|var|end)([a-z]+))\b/ig),
+    //накинуть сверху вывод ошибки
+    identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig),
 
-    varListParser = new Parser((str_: string) => {
-        
-        let
-            parserIdent = combin.alternative(identParser, combin.empty()),
-            parserSepar = combin.alternative(strToStr(/^,:/ig), combin.empty());
+    commaParser = combin.genTerm(/^,/ig),
 
-        console.log('varList', str_ = parserIdent.parse(str_).input);
-        console.log('varList', parserSepar.parse(str_));
-    }),
+    colonParser = combin.genTerm(/^:/ig),
 
-    varDecParser = new Parser((str_: string) => {
+    identListParser = new Parser((str_: string) => {
 
         let 
-            parserIdent      = strToStr(/\b((?!begin|var|end)([a-z]+))\b/ig),
-            parserSepar      = strToStr(/([\(\),;]|begin|end)/ig),
-            combinIdentSepar = combin.seqAppR(parserIdent, parserSepar),
-            varListParser    = combin.many(combinIdentSepar);
-        
-        return combin.seqAppR(varParser, combin.seqAppL(varListParser, logicalParser));
-    });
+            identCommaParser = combin.seqApp(identParser, commaParser, (resL_: combin.genTermRes, resR_: combin.genTermRes) => {
+                return {
+                    result: `${resL_.result}${resR_.result}`,
+                    input : resR_.input, 
+                }
+            }),
 
-    
+            identColonParser = combin.seqApp(identParser, colonParser, (resL_: combin.genTermRes, resR_: combin.genTermRes) => {
+                return {
+                    result: `${resL_.result}${resR_.result}`,
+                    input : resR_.input, 
+                }
+            }),
+
+            identCommaListParser = combin.repeat(identCommaParser, '');
+
+        console.log(identCommaListParser.parse(str_));
+    });
+ 
 
 export {
-    strToStr, 
-    strToTerm, 
-    strToEqualStr,
+    varParser,
+    logicalParser,
+    identListParser,
 
-    varParser, 
-    logicalParser,    
-    beginParser, 
+    beginParser,
     endParser,
     
     equalParser,
+
     unaryParser,
-    identParser,
     binaryParser,
 
-    varListParser,
-    varDecParser,
+    identParser, 
 };
 
 

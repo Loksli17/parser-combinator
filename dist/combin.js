@@ -3,87 +3,75 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.many = exports.seqAppR = exports.seqAppL = exports.seqApp = exports.alternative = exports.fmap = exports.monadBind = exports.pure = exports.empty = void 0;
+exports.repeat = exports.altSeq = exports.seqApp = exports.monadBind = exports.error = exports.genTerm = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
-let empty = () => {
+let 
+//@return Parser: string -> [term, other string]
+genTerm = (reg_) => {
+    return new ParseModel_1.default((str_) => {
+        str_ = str_.replace(/^\s*/, ''); //trum many spaces
+        let arr = str_.match(reg_);
+        return arr == null ? null : {
+            result: arr[0],
+            input: str_.replace(arr[0], ''),
+        };
+    });
+}, 
+//парсер который будет возвращать ошибку
+error = () => {
     return new ParseModel_1.default(() => {
         return null;
     });
 }, 
-//look type in future
-pure = (a) => {
+//_>> @return Parser: [Parser A, function] -> new Parser 
+monadBind = (a_, f_) => {
     return new ParseModel_1.default((input) => {
-        return [a, input];
-    });
-}, 
-//использовать для нетерминалов
-//input parser + func 
-monadBind = (p_, f_) => {
-    return new ParseModel_1.default((input) => {
-        let res = p_.parse(input);
+        let res = a_.parse(input);
         if (res == null)
             return null;
         let newParser = f_(res.result); //return parser
         return newParser.parse(res.input);
     });
 }, 
-//<^>
-fmap = (f_, p_) => {
-    return monadBind(p_, (a) => { console.log('fmap-debug:', a); return pure(f_(a)); });
-}, 
-//
-alternative = (p_, q_) => {
-    return new ParseModel_1.default((input) => {
-        let res = p_.parse(input);
-        if (res == null)
-            return q_.parse(input);
-        return res;
+//<*> @return Parser: [parser A, Parser B] -> func
+seqApp = (a_, b_, compare) => {
+    return new ParseModel_1.default((str_) => {
+        let resA = a_.parse(str_);
+        if (resA == null)
+            return null;
+        let resB = b_.parse(resA.input);
+        if (resB == null)
+            return null;
+        return compare(resA, resB);
     });
 }, 
-// <*>
-//левый парсер связывает функцией, в которую передается какая-то функция
-seqApp = (p_, q_) => {
-    console.log('seqAppDebug', p_, q_);
-    return monadBind(p_, (f) => { console.log('seqAppF:', f); return fmap(f, q_); });
-}, 
-// <*
-seqAppL = (p_, q_) => {
-    return new ParseModel_1.default((input) => {
-        let resP = p_.parse(input);
-        if (resP == null)
-            return null;
-        let resQ = q_.parse(resP.result);
-        if (resQ == null)
-            return null;
-        return [resQ.result, resP.input];
+//<|>
+altSeq = (a_, b_) => {
+    return new ParseModel_1.default((str_) => {
+        let resA = a_.parse(str_), resB = b_.parse(str_);
+        if (resA == null) {
+            resB == null ? null : resB;
+        }
+        ;
+        return resA;
     });
-}, 
-// *>
-seqAppR = (p_, q_) => {
-    return new ParseModel_1.default((input) => {
-        let resP = p_.parse(input);
-        if (resP == null)
-            return null;
-        let resQ = q_.parse(resP.result);
-        //я хочу поменять тут null
-        if (resQ == null)
-            return { result: null, input: resP.result };
-        return {
-            result: resQ.result,
-            input: resQ.input,
-        };
+}, repeat = (a_) => {
+    return new ParseModel_1.default((str_) => {
+        let result = '';
+        while (true) {
+            let resA = a_.parse(str_);
+            console.log(resA);
+            if (resA == null)
+                break;
+            result += resA.result + ' ';
+            str_ = str_.replace(resA.result, '');
+        }
+        return result == '' ? null : result;
     });
-}, many = (p_) => {
-    return alternative(many1(p_), pure([]));
-}, many1 = (p_) => {
-    return seqAppL(p_, many(p_));
 };
-exports.empty = empty;
-exports.pure = pure;
+exports.genTerm = genTerm;
+exports.error = error;
 exports.monadBind = monadBind;
-exports.fmap = fmap;
-exports.alternative = alternative;
 exports.seqApp = seqApp;
-exports.seqAppL = seqAppL;
-exports.seqAppR = seqAppR;
-exports.many = many;
+exports.altSeq = altSeq;
+exports.repeat = repeat;

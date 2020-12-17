@@ -4,89 +4,86 @@ import Parser     from './libs/ParseModel';
 import * as fs    from 'fs';
 
 
+interface genTermRes{
+    result: string,
+    input : string,
+}
+
 let
-    empty = (): Parser => {
+    //@return Parser: string -> [term, other string]
+    genTerm = (reg_: RegExp): Parser => {
+        return new Parser((str_: string): genTermRes | null => {
+            str_ = str_.replace(/^\s*/, ''); //trum many spaces
+            let arr: RegExpMatchArray | null = str_.match(reg_);
+            return arr == null ? null : {
+                result: arr[0],
+                input : str_.replace(arr[0], ''),
+            }
+        });
+    },
+
+    //парсер который будет возвращать ошибку
+    error = (): Parser => {
         return new Parser(() => {
             return null;
         });
     },
 
-    //look type in future
-    pure = (a: any): Parser => {
-        return new Parser((input: any): Array<any> => {
-            return [a, input];
-        });
-    },
-
-    //использовать для нетерминалов
-    //input parser + func 
-    monadBind = (p_: Parser, f_: Function): Parser => {
-        return new Parser((input: any): object | null => {
-            let res = p_.parse(input);
+    //_>> @return Parser: [Parser A, function] -> new Parser 
+    monadBind = (a_: Parser, f_: Function): Parser => {
+        return new Parser((input: string): genTermRes | null => {
+            let res = a_.parse(input);
             if(res == null) return null;
             let newParser = f_(res.result); //return parser
             return newParser.parse(res.input); 
         });
     },
 
-    //<^>
-    fmap = (f_: Function, p_: Parser): Parser => {
-        return monadBind(p_, (a: any) => {console.log('fmap-debug:', a); return pure(f_(a))});
-    },
-
-    //
-    alternative = (p_: Parser, q_: Parser): Parser => {
-        return new Parser((input: any) => {
-            let res = p_.parse(input);
-            if(res == null) return q_.parse(input);
-            return res;
+    //<*> @return Parser: [parser A, Parser B] -> func
+    seqApp = (a_: Parser, b_: Parser, compare: Function): Parser => {
+        return new Parser((str_: string): Function | null => {
+            let resA = a_.parse(str_);
+            if(resA == null) return null;
+            let resB = b_.parse(resA.input);
+            if(resB == null) return null;
+            return compare(resA, resB);
         });
     },
 
-    // <*>
-    //левый парсер связывает функцией, в которую передается какая-то функция
-    seqApp = (p_: Parser, q_: Parser): Parser => {
-        console.log('seqAppDebug', p_, q_);
-        return monadBind(p_, (f: any) => {console.log('seqAppF:', f); return fmap(f, q_)});
-    },
-
-    // <*
-    seqAppL = (p_: Parser, q_: Parser): Parser => {
-        return new Parser((input: any) => {
-            let resP = p_.parse(input);
-            if(resP == null) return null; 
-
-            let resQ = q_.parse(resP.result);
-            if(resQ == null) return null;
-            return [resQ.result, resP.input];
-        });
-    },
-
-    // *>
-    seqAppR = (p_: Parser, q_: Parser): Parser => {
-        return new Parser((input: any) => {
-            let resP = p_.parse(input);
-            if(resP == null) return null;
+    //<|>
+    altSeq = (a_: Parser, b_: Parser): Parser => {
+        return new Parser((str_: string): Array<genTermRes> | null => {
+            let
+                resA = a_.parse(str_),
+                resB = b_.parse(str_);
             
-            let resQ = q_.parse(resP.result);
-            //я хочу поменять тут null
-            if(resQ == null) return {result: null, input: resP.result};
-            return {
-                result: resQ.result,
-                input : resQ.input,
-            };
+                if(resA == null){
+                    resB == null ? null : resB;
+                };
+
+                return resA;
         });
     },
 
-    many = (p_: Parser): Parser => {
-        return alternative(many1(p_), pure([]));
-    },
+    repeat = (a_: Parser, value: string): Parser => {
+        return new Parser((str_: string) => {
+            let result: string = '';
 
-    many1 = (p_: Parser): Parser => {
-        return seqAppL(p_, many(p_));  
+            while(true){
+                let resA  : genTermRes = a_.parse(str_);
+                if(resA == null) return null;
+                if(resA.input == value) break;
+                result += resA.result + ' ';
+                str_ = str_.replace(resA.result, '');
+            }
+
+            return result == '' ? null : result;
+        })  
     };
 
-export {empty, pure, monadBind, fmap, alternative, seqApp, seqAppL, seqAppR, many};
+
+
+export {genTermRes, genTerm, error, monadBind, seqApp, altSeq, repeat};
 
 
 
