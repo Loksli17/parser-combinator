@@ -82,7 +82,7 @@ console.log('alternative: ', res);
 
 
 //test seqApp
-// let parserTestSeq = combin.seqApp(identParser, separParser).parse(() => {});
+let parserTestSeq = combin.seqApp(identParser, separParser).parse('kek');
 
 
 //test seqAppL
@@ -136,7 +136,7 @@ parserIdentSepar = combin.monadBind(parserIdentSepar, (res_: string): Parser => 
 
         if(res_ == null && input_ != null){
             return 'error with ,';
-        }else if(res_ == null){
+        }else if(res_ == null){ //there is one problem this return of monadbind
             return 'error with ident'; //не найден идентификатор
         }
 
@@ -147,13 +147,54 @@ parserIdentSepar = combin.monadBind(parserIdentSepar, (res_: string): Parser => 
     });
 });
 
-console.log('/n/n ident list');
-console.log(parserIdentSepar.parse(','));
-// console.log(parserIdentTest.parse('kek'));
+console.log('\n\n ident list');
+console.log(parserIdentSepar.parse('kek,'));
+
+//variant4 сделать рекурсию внутри varlist
+
+
+
+//underExpression
+let underExpression = new Parser((str: string) => {
+
+    // let
+
+    // return combin.alternative();
+});
+
+
+//expresssion
+let expressionParser = new Parser((str: string) => {
+
+    let
+        unaryParser     = parser.unaryParser,
+        underExpression = parser.strToStr(/underEx/) 
+    
+    return combin.alternative(combin.seqAppR(unaryParser, underExpression), underExpression);
+});
+
+
+//assigment
+let assignmentParser = new Parser((str: string) => {
+    
+    let 
+        identParser = parser.identParser,
+        equalParser = parser.equalParser,
+        expression  = parser.strToStr(/([a-z]|[^&!:=]|[01]|[\(\)])/ig);
+        
+    return combin.seqAppR(identParser, combin.seqAppR(equalParser, expression));
+});
+
+
 
 
 //вопросы
-//1.
+//1. seqApp - не уверен, что верно написан или не понимаю как пользоваться
+//2. seqAppL, seqAppR - есть мысль как переделать
+//3. может быть сделать парсер, который будет выполнять другой до опредленного результата?
+//4. может быть сделать парсер, который будет возвращать массив обьектов {result: , input: }?
+//5. пока сложно делать присваивание
+//6. спросить про навешивание monadbind для ошибок
 
 
 

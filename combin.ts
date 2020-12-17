@@ -24,7 +24,6 @@ let
         return new Parser((input: any): object | null => {
             let res = p_.parse(input);
             if(res == null) return null;
-            // console.log('monad-debug:', res);
             let newParser = f_(res.result); //return parser
             return newParser.parse(res.input); 
         });
@@ -45,8 +44,10 @@ let
     },
 
     // <*>
+    //левый парсер связывает функцией, в которую передается какая-то функция
     seqApp = (p_: Parser, q_: Parser): Parser => {
-        return monadBind(p_, (f: any) => {return fmap(f, q_)});
+        console.log('seqAppDebug', p_, q_);
+        return monadBind(p_, (f: any) => {console.log('seqAppF:', f); return fmap(f, q_)});
     },
 
     // <*

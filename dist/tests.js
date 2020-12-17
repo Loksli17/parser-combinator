@@ -69,7 +69,7 @@ let alternativeParser = combin.alternative(separParser, identParser);
 res = alternativeParser.parse("kek = 1");
 console.log('alternative: ', res);
 //test seqApp
-// let parserTestSeq = combin.seqApp(identParser, separParser).parse(() => {});
+let parserTestSeq = combin.seqApp(identParser, separParser).parse('kek');
 //test seqAppL
 let lexSeparParser = parser.strToStr(/[a-z]+[,;]/), seqLParser = combin.seqAppL(lexSeparParser, separParser);
 res = seqLParser.parse('x, y, z');
@@ -104,7 +104,7 @@ parserIdentSepar = combin.monadBind(parserIdentSepar, (res_) => {
         if (res_ == null && input_ != null) {
             return 'error with ,';
         }
-        else if (res_ == null) {
+        else if (res_ == null) { //there is one problem this return of monadbind
             return 'error with ident'; //не найден идентификатор
         }
         return {
@@ -113,10 +113,28 @@ parserIdentSepar = combin.monadBind(parserIdentSepar, (res_) => {
         };
     });
 });
-console.log('/n/n ident list');
-console.log(parserIdentSepar.parse('kek'));
-// console.log(parserIdentTest.parse('kek'));
-//test many
-// let
-//     manyParser = combin.many(parser.strToStr(/[a-z]+/ig));
-// console.log(manyParser.parse('zasd zsd sda dsd'));
+console.log('\n\n ident list');
+console.log(parserIdentSepar.parse('kek,'));
+//variant4 сделать рекурсию внутри varlist
+//underExpression
+let underExpression = new ParseModel_1.default((str) => {
+    // let
+    // return combin.alternative();
+});
+//expresssion
+let expressionParser = new ParseModel_1.default((str) => {
+    let unaryParser = parser.unaryParser, underExpression = parser.strToStr(/underEx/);
+    return combin.alternative(combin.seqAppR(unaryParser, underExpression), underExpression);
+});
+//assigment
+let assignmentParser = new ParseModel_1.default((str) => {
+    let identParser = parser.identParser, equalParser = parser.equalParser, expression = parser.strToStr(/([a-z]|[^&!:=]|[01]|[\(\)])/ig);
+    return combin.seqAppR(identParser, combin.seqAppR(equalParser, expression));
+});
+//вопросы
+//1. seqApp - не уверен, что верно написан или не понимаю как пользоваться
+//2. seqAppL, seqAppR - есть мысль как переделать
+//3. может быть сделать парсер, который будет выполнять другой до опредленного результата?
+//4. может быть сделать парсер, который будет возвращать массив обьектов {result: , input: }?
+//5. пока сложно делать присваивание
+//6. спросить про навешивание monadbind для ошибок

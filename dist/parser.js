@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.varDecParser = exports.endParser = exports.beginParser = exports.logicalParser = exports.varParser = exports.strToEqualStr = exports.strToTerm = exports.strToStr = void 0;
+exports.varDecParser = exports.varListParser = exports.binaryParser = exports.identParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.logicalParser = exports.varParser = exports.strToEqualStr = exports.strToTerm = exports.strToStr = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 const fs = __importStar(require("fs"));
 const combin = __importStar(require("./combin"));
@@ -39,6 +39,7 @@ strToTerm = (reg_, status_) => {
     });
 }, strToStr = (reg_) => {
     return new ParseModel_1.default((str_) => {
+        str_ = str_.replace(/^\s*/, '');
         let arr = str_.match(reg_);
         return arr == null ? null : {
             result: arr[0],
@@ -56,14 +57,14 @@ strToTerm = (reg_, status_) => {
             input: '',
         };
     });
-}, varParser = combin.monadBind(strToStr(/var/ig), (res_) => {
+}, varParser = combin.monadBind(strToStr(/^var\s+/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         return {
             result: 'Var\n',
             input: input_,
         };
     });
-}), logicalParser = combin.monadBind(strToStr(/:\s*logical\s*;/ig), (res_) => {
+}), logicalParser = combin.monadBind(strToStr(/^:\s*logical\s*;/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         res_ = res_.replace(/\s/g, '');
         if (res_ == null)
@@ -76,7 +77,7 @@ strToTerm = (reg_, status_) => {
             input: input_,
         };
     });
-}), beginParser = combin.monadBind(strToStr(/begin/ig), (res_) => {
+}), beginParser = combin.monadBind(strToStr(/^begin/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         if (res_ == null)
             return null;
@@ -85,7 +86,7 @@ strToTerm = (reg_, status_) => {
             input: input_,
         };
     });
-}), endParser = combin.monadBind(strToStr(/end/ig), (res_) => {
+}), endParser = combin.monadBind(strToStr(/^end/ig), (res_) => {
     return new ParseModel_1.default((input_) => {
         if (res_ == null)
             return null;
@@ -94,8 +95,41 @@ strToTerm = (reg_, status_) => {
             input: input_,
         };
     });
+}), equalParser = combin.monadBind(strToStr(/^:=/ig), (res_) => {
+    return new ParseModel_1.default((input_) => {
+        if (res_ == null)
+            return null;
+        return {
+            result: '=',
+            input: input_,
+        };
+    });
+}), unaryParser = strToStr(/^!/ig), binaryParser = combin.monadBind(strToStr(/^[\|\^\&]/ig), (res_) => {
+    return new ParseModel_1.default((input_) => {
+        let result = '';
+        if (res_ == null)
+            return null;
+        switch (res_) {
+            case '|':
+                result = 'OR';
+                break;
+            case '^':
+                result = 'XOR';
+                break;
+            case '&':
+                result = 'AND';
+                break;
+        }
+        return {
+            result: result,
+            input: input_,
+        };
+    });
+}), identParser = strToStr(/^\b((?!begin|var|end)([a-z]+))\b/ig), varListParser = new ParseModel_1.default((str_) => {
+    let parserIdent = combin.alternative(identParser, combin.empty()), parserSepar = combin.alternative(strToStr(/^,:/ig), combin.empty());
+    console.log('varList', str_ = parserIdent.parse(str_).input);
+    console.log('varList', parserSepar.parse(str_));
 }), varDecParser = new ParseModel_1.default((str_) => {
-    //регулярка в logicalParser не забыть про пробелы
     let parserIdent = strToStr(/\b((?!begin|var|end)([a-z]+))\b/ig), parserSepar = strToStr(/([\(\),;]|begin|end)/ig), combinIdentSepar = combin.seqAppR(parserIdent, parserSepar), varListParser = combin.many(combinIdentSepar);
     return combin.seqAppR(varParser, combin.seqAppL(varListParser, logicalParser));
 });
@@ -106,6 +140,11 @@ exports.varParser = varParser;
 exports.logicalParser = logicalParser;
 exports.beginParser = beginParser;
 exports.endParser = endParser;
+exports.equalParser = equalParser;
+exports.unaryParser = unaryParser;
+exports.binaryParser = binaryParser;
+exports.identParser = identParser;
+exports.varListParser = varListParser;
 exports.varDecParser = varDecParser;
 // console.log(stringToTerminal(/(var)/ig,                           TypeStatus.keyword).parse(fileData));
 // console.log(stringToTerminal(/([\(\),;]|begin|end)/ig,            TypeStatus.separator).parse(fileData));
