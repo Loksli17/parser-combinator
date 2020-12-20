@@ -38,6 +38,11 @@ console.log(manyParser.parse('sdasd, asdasd aasd: logical;'));
 
 
 
+
+//parsers
+let logicalParser = parser.logicalParser;
+console.log('logical:', logicalParser.parse('logical;'));
+
 let identListParserTest = parser.identListParser;
 console.log(identListParserTest.parse('joli, kel, kek:'));
 

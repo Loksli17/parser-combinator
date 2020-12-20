@@ -18,45 +18,6 @@ let
         });
     }),
 
-    logicalParser = combin.monadBind(combin.genTerm(/^logical\s*;/ig), (res_: string): Parser => {
-        return new Parser((input_: string): object | null => {
-            res_ = res_.replace(/\s/g, '');
-            if(res_ == null) return null;
-
-            let arr: RegExpMatchArray | null = res_.match(/logical/i);
-            if(arr == null) return null;
-
-            return{
-                result: res_.replace(arr[0], ' Boolean'),
-                input:  input_,
-            }
-        });
-    }),
-
-    beginParser = combin.monadBind(combin.genTerm(/^begin/ig), (res_: string): Parser => {
-        return new Parser((input_: string): object | null => {
-
-            if(res_ == null) return null;
-
-            return {
-                result: 'Begin',
-                input : input_, 
-            }
-        });
-    }),
-
-    endParser = combin.monadBind(combin.genTerm(/^end/ig), (res_: string): Parser => {
-        return new Parser((input_: string): object | null => {
-
-            if(res_ == null) return null;
-
-            return {
-                result: 'End',
-                input : input_, 
-            }
-        });
-    }),
-
     equalParser = combin.monadBind(combin.genTerm(/^:=/ig), (res_: string): Parser => {
         return new Parser((input_: string): object | null => {
 
@@ -104,13 +65,69 @@ let
 
     colonParser = combin.genTerm(/^:/ig),
 
+    beginParser = combin.monadBind(combin.genTerm(/^begin/ig), (res_: string): Parser => {
+        return new Parser((input_: string): object | null => {
+
+            if(res_ == null) return null;
+
+            return {
+                result: 'Begin',
+                input : input_, 
+            }
+        });
+    }),
+
+    endParser = combin.monadBind(combin.genTerm(/^end/ig), (res_: string): Parser => {
+        return new Parser((input_: string): object | null => {
+
+            if(res_ == null) return null;
+
+            return {
+                result: 'End',
+                input : input_, 
+            }
+        });
+    }),
+
+    semicolonParser = combin.genTerm(/^;/ig),
+
+    logicalParser = combin.functor(
+        combin.seqApp(
+            combin.genTerm(/^logical/ig),
+            semicolonParser,
+        ),
+        (res: combin.parserRes): combin.parserRes | null => {
+            if(res.result.length != 2) return null; //normal error here
+            return {
+                result: `Boolean;`,
+                input : res.input,
+            };
+        },
+    ),
+   
+
+    // logicalParser = combin.monadBind(combin.genTerm(/^logical\s*;/ig), (res_: string): Parser => {
+    //     return new Parser((input_: string): object | null => {
+    //         res_ = res_.replace(/\s/g, '');
+    //         if(res_ == null) return null;
+
+    //         let arr: RegExpMatchArray | null = res_.match(/logical/i);
+    //         if(arr == null) return null;
+
+    //         return{
+    //             result: res_.replace(arr[0], ' Boolean'),
+    //             input:  input_,
+    //         }
+    //     });
+    // }),
+
     //спросить (don't forget about functor)
     identListParser = new Parser((str_: string): combin.parserRes => {
         let
             commaColonParser: Parser = combin.seqAlt(commaParser, colonParser),
             identSeparParser: Parser = combin.functor(
                 combin.seqApp(identParser, commaColonParser),
-                (res: combin.parserRes) => {
+                (res: combin.parserRes): combin.parserRes | null => {
                     if(res.result.length != 2) return null; //i need in normal error here
                     return {
                         result: `${res.result[0]}${res.result[1]}`,
@@ -121,8 +138,8 @@ let
             listParser      : Parser = combin.oneOrMany(identSeparParser),
             valueLanguage   : string = '';
 
-        console.log('listParserTests: \n');
-        console.log(listParser.parse('asd, afd, fd:')); //good output
+        console.log('\nlistParserTests:');
+        console.log(listParser.parse('   asd  , afd, fd:')); //good output
         console.log(listParser.parse('dfsdf, , , , :')); //ошибку в такой ситуации можно выкинуть выше
 
         return {
