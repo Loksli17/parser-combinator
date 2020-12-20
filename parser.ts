@@ -98,7 +98,10 @@ let
     }),
 
     //накинуть сверху вывод ошибки
-    identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig),
+    identParser = combin.altSeq(
+        combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig),
+        combin.error(`expected identifier`),
+    ),
 
     commaParser = combin.genTerm(/^,/ig),
 
@@ -106,24 +109,24 @@ let
 
     identListParser = new Parser((str_: string) => {
 
-        let 
-            identCommaParser = combin.seqApp(identParser, commaParser, (resL_: combin.genTermRes, resR_: combin.genTermRes) => {
-                return {
-                    result: `${resL_.result}${resR_.result}`,
-                    input : resR_.input, 
-                }
-            }),
+        // // let 
+        // //     identCommaParser = combin.seqApp(identParser, commaParser, (resL_: combin.genTermRes, resR_: combin.genTermRes) => {
+        // //         return {
+        // //             result: `${resL_.result}${resR_.result}`,
+        // //             input : resR_.input, 
+        // //         }
+        // //     }),
 
-            identColonParser = combin.seqApp(identParser, colonParser, (resL_: combin.genTermRes, resR_: combin.genTermRes) => {
-                return {
-                    result: `${resL_.result}${resR_.result}`,
-                    input : resR_.input, 
-                }
-            }),
+        // //     identColonParser = combin.seqApp(identParser, colonParser, (resL_: combin.genTermRes, resR_: combin.genTermRes) => {
+        // //         return {
+        // //             result: `${resL_.result}${resR_.result}`,
+        // //             input : resR_.input, 
+        // //         }
+        // //     }),
 
-            identCommaListParser = combin.repeat(identCommaParser, '');
+        // //     identCommaListParser = combin.repeat(identCommaParser, '');
 
-        console.log(identCommaListParser.parse(str_));
+        // console.log(identCommaListParser.parse(str_));
     });
  
 

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.repeat = exports.altSeq = exports.seqApp = exports.monadBind = exports.error = exports.genTerm = void 0;
+exports.repeat = exports.seqAppR = exports.seqAppL = exports.seqApp = exports.altSeq = exports.functor = exports.monadBind = exports.error = exports.genTerm = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 let 
 //@return Parser: string -> [term, other string]
@@ -18,9 +18,9 @@ genTerm = (reg_) => {
     });
 }, 
 //парсер который будет возвращать ошибку
-error = () => {
-    return new ParseModel_1.default(() => {
-        return null;
+error = (message_) => {
+    return new ParseModel_1.default((a) => {
+        throw new Error(message_);
     });
 }, 
 //_>> @return Parser: [Parser A, function] -> new Parser 
@@ -33,8 +33,29 @@ monadBind = (a_, f_) => {
         return newParser.parse(res.input);
     });
 }, 
+//<^>
+functor = (a_, f_) => {
+    return new ParseModel_1.default((str_) => {
+        let res = a_.parse(str_);
+        if (res == null)
+            return null;
+        return f_(res);
+    });
+}, 
+//<|>
+altSeq = (a_, b_) => {
+    return new ParseModel_1.default((str_) => {
+        let resA = a_.parse(str_);
+        if (resA == null) {
+            let resB = b_.parse(str_);
+            resB == null ? null : resB;
+        }
+        ;
+        return resA;
+    });
+}, 
 //<*> @return Parser: [parser A, Parser B] -> func
-seqApp = (a_, b_, compare) => {
+seqApp = (a_, b_) => {
     return new ParseModel_1.default((str_) => {
         let resA = a_.parse(str_);
         if (resA == null)
@@ -42,26 +63,40 @@ seqApp = (a_, b_, compare) => {
         let resB = b_.parse(resA.input);
         if (resB == null)
             return null;
-        return compare(resA, resB);
+        return {
+            result: [
+                resA.result,
+                resB.result,
+            ],
+            input: resB.input,
+        };
     });
 }, 
-//<|>
-altSeq = (a_, b_) => {
-    return new ParseModel_1.default((str_) => {
-        let resA = a_.parse(str_), resB = b_.parse(str_);
-        if (resA == null) {
-            resB == null ? null : resB;
-        }
-        ;
-        return resA;
+//<*
+seqAppL = (a_, b_) => {
+    return functor(seqApp(a_, b_), (res) => {
+        return {
+            result: res.result[0],
+            input: res.input,
+        };
     });
-}, repeat = (a_) => {
+}, 
+//*>
+seqAppR = (a_, b_) => {
+    return functor(seqApp(a_, b_), (res) => {
+        return {
+            result: res.result[1],
+            input: res.input,
+        };
+    });
+}, repeat = (a_, value) => {
     return new ParseModel_1.default((str_) => {
         let result = '';
         while (true) {
             let resA = a_.parse(str_);
-            console.log(resA);
             if (resA == null)
+                return null;
+            if (resA.input == value)
                 break;
             result += resA.result + ' ';
             str_ = str_.replace(resA.result, '');
@@ -72,6 +107,9 @@ altSeq = (a_, b_) => {
 exports.genTerm = genTerm;
 exports.error = error;
 exports.monadBind = monadBind;
-exports.seqApp = seqApp;
+exports.functor = functor;
 exports.altSeq = altSeq;
+exports.seqApp = seqApp;
+exports.seqAppL = seqAppL;
+exports.seqAppR = seqAppR;
 exports.repeat = repeat;

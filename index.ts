@@ -11,3 +11,8 @@ let fileData = fs.readFileSync('data.txt','utf-8');
 
 // console.log('var list parser: ', parser.varListParser.parse('kek, lol, dfsdf :logical;'));
 
+
+//вопросы
+//1. спросить про то что seqApp возвращает другой результат и как использовать функтор
+//2. писать ли seqAppL и seqAppR?
+//3. что делать с repeat?

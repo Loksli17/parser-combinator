@@ -4,6 +4,11 @@ import Parser      from './libs/ParseModel';
 import * as combin from './combin';
 import * as parser from './parser';
 
+//error test
+let testError = parser.identParser.parse('asd, sdf, sdf, df');
+console.log(testError);
+
+
 let
     parserIdentComma = combin.genTerm(/^[a-z]+\s*[,:]/ig),
     parserComma      = combin.genTerm(/^,/ig),
@@ -17,7 +22,16 @@ let altSeqTest = combin.altSeq(parserIdent, parserComma);
 console.log(altSeqTest.parse('asdasd, adasd, adssad'));
 // let parser1 = combin.seqApp(parserIdent, parserComma);
 
-let identListParserTest = parser.identListParser.parse('asd, kke erre, sdfe:');
+
+//данный комбинатор использовать с функтором
+let seqApp = combin.seqApp(parserIdent, parserComma);
+console.log(seqApp.parse('sdfdf, sdfsdf'));
+
+let seqAppL = combin.seqAppL(parserIdent, parserComma);
+console.log(seqAppL.parse('asdsad, begin'));
+
+let seqAppR = combin.seqAppR(parserIdent, parserComma);
+console.log(seqAppR.parse('asdsad, begin'));
 
 
 

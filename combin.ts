@@ -9,6 +9,11 @@ interface genTermRes{
     input : string,
 }
 
+interface seqAppRes{
+    result: Array<genTermRes>,
+    input : string,
+}
+
 let
     //@return Parser: string -> [term, other string]
     genTerm = (reg_: RegExp): Parser => {
@@ -23,9 +28,9 @@ let
     },
 
     //парсер который будет возвращать ошибку
-    error = (): Parser => {
-        return new Parser(() => {
-            return null;
+    error = (message_: string): Parser => {
+        return new Parser((a: any) => {
+            throw new Error(message_);
         });
     },
 
@@ -39,29 +44,63 @@ let
         });
     },
 
-    //<*> @return Parser: [parser A, Parser B] -> func
-    seqApp = (a_: Parser, b_: Parser, compare: Function): Parser => {
-        return new Parser((str_: string): Function | null => {
-            let resA = a_.parse(str_);
-            if(resA == null) return null;
-            let resB = b_.parse(resA.input);
-            if(resB == null) return null;
-            return compare(resA, resB);
-        });
+    //<^>
+    functor = (a_: Parser, f_: Function): Parser => {
+        return new Parser((str_: string) => {
+            let res = a_.parse(str_);
+            if(res == null) return null
+            return f_(res);
+        })
     },
 
     //<|>
     altSeq = (a_: Parser, b_: Parser): Parser => {
         return new Parser((str_: string): Array<genTermRes> | null => {
-            let
-                resA = a_.parse(str_),
-                resB = b_.parse(str_);
-            
-                if(resA == null){
-                    resB == null ? null : resB;
-                };
+            let resA = a_.parse(str_);
+                
+            if(resA == null){
+                let resB = b_.parse(str_);
+                resB == null ? null : resB;
+            };
 
-                return resA;
+            return resA;
+        });
+    },
+
+    //<*> @return Parser: [parser A, Parser B] -> func
+    seqApp = (a_: Parser, b_: Parser): Parser => {
+        return new Parser((str_: string): seqAppRes | null => {
+            let resA = a_.parse(str_);
+            if(resA == null) return null;
+            let resB = b_.parse(resA.input);
+            if(resB == null) return null;
+            return {
+                result: [
+                    resA.result,
+                    resB.result,
+                ],
+                input: resB.input,
+            };
+        });
+    },
+
+    //<*
+    seqAppL = (a_: Parser, b_: Parser): Parser => {
+        return functor(seqApp(a_, b_), (res: seqAppRes) => {
+            return{
+                result: res.result[0],
+                input : res.input,
+            }
+        });
+    },
+
+    //*>
+    seqAppR = (a_: Parser, b_: Parser): Parser => {
+        return functor(seqApp(a_, b_), (res: seqAppRes) => {
+            return{
+                result: res.result[1],
+                input : res.input,
+            }
         });
     },
 
@@ -83,7 +122,22 @@ let
 
 
 
-export {genTermRes, genTerm, error, monadBind, seqApp, altSeq, repeat};
+export {
+    genTermRes, 
+
+    genTerm, 
+    error, 
+    
+    monadBind,
+    functor,
+    altSeq, 
+
+    seqApp,
+    seqAppL,
+    seqAppR,
+
+    repeat
+};
 
 
 
