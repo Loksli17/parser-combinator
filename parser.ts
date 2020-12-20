@@ -105,22 +105,6 @@ let
         },
     ),
    
-
-    // logicalParser = combin.monadBind(combin.genTerm(/^logical\s*;/ig), (res_: string): Parser => {
-    //     return new Parser((input_: string): object | null => {
-    //         res_ = res_.replace(/\s/g, '');
-    //         if(res_ == null) return null;
-
-    //         let arr: RegExpMatchArray | null = res_.match(/logical/i);
-    //         if(arr == null) return null;
-
-    //         return{
-    //             result: res_.replace(arr[0], ' Boolean'),
-    //             input:  input_,
-    //         }
-    //     });
-    // }),
-
     //спросить (don't forget about functor)
     identListParser = new Parser((str_: string): combin.parserRes => {
         let
