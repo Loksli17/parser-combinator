@@ -98,35 +98,37 @@ let
     }),
 
     //накинуть сверху вывод ошибки
-    identParser = combin.altSeq(
-        combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig),
-        combin.error(`expected identifier`),
-    ),
+    identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig),
 
     commaParser = combin.genTerm(/^,/ig),
 
     colonParser = combin.genTerm(/^:/ig),
 
-    identListParser = new Parser((str_: string) => {
+    //спросить (don't forget about functor)
+    identListParser = new Parser((str_: string): combin.parserRes => {
+        let
+            commaColonParser: Parser = combin.seqAlt(commaParser, colonParser),
+            identSeparParser: Parser = combin.functor(
+                combin.seqApp(identParser, commaColonParser),
+                (res: combin.parserRes) => {
+                    if(res.result.length != 2) return null; //i need in normal error here
+                    return {
+                        result: `${res.result[0]}${res.result[1]}`,
+                        input : res.input,
+                    };
+                },
+            ), 
+            listParser      : Parser = combin.oneOrMany(identSeparParser),
+            valueLanguage   : string = '';
 
-        // // let 
-        // //     identCommaParser = combin.seqApp(identParser, commaParser, (resL_: combin.genTermRes, resR_: combin.genTermRes) => {
-        // //         return {
-        // //             result: `${resL_.result}${resR_.result}`,
-        // //             input : resR_.input, 
-        // //         }
-        // //     }),
+        console.log('listParserTests: \n');
+        console.log(listParser.parse('asd, afd, fd:')); //good output
+        console.log(listParser.parse('dfsdf, , , , :')); //ошибку в такой ситуации можно выкинуть выше
 
-        // //     identColonParser = combin.seqApp(identParser, colonParser, (resL_: combin.genTermRes, resR_: combin.genTermRes) => {
-        // //         return {
-        // //             result: `${resL_.result}${resR_.result}`,
-        // //             input : resR_.input, 
-        // //         }
-        // //     }),
-
-        // //     identCommaListParser = combin.repeat(identCommaParser, '');
-
-        // console.log(identCommaListParser.parse(str_));
+        return {
+            result: 'asd, afd, fd:',
+            input : ' logical;',
+        }
     });
  
 

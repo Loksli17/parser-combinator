@@ -97,22 +97,24 @@ let varParser = combin.monadBind(combin.genTerm(/^var\s+/ig), (res_) => {
     });
 }), 
 //накинуть сверху вывод ошибки
-identParser = combin.altSeq(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig), combin.error(`expected identifier`)), commaParser = combin.genTerm(/^,/ig), colonParser = combin.genTerm(/^:/ig), identListParser = new ParseModel_1.default((str_) => {
-    // // let 
-    // //     identCommaParser = combin.seqApp(identParser, commaParser, (resL_: combin.genTermRes, resR_: combin.genTermRes) => {
-    // //         return {
-    // //             result: `${resL_.result}${resR_.result}`,
-    // //             input : resR_.input, 
-    // //         }
-    // //     }),
-    // //     identColonParser = combin.seqApp(identParser, colonParser, (resL_: combin.genTermRes, resR_: combin.genTermRes) => {
-    // //         return {
-    // //             result: `${resL_.result}${resR_.result}`,
-    // //             input : resR_.input, 
-    // //         }
-    // //     }),
-    // //     identCommaListParser = combin.repeat(identCommaParser, '');
-    // console.log(identCommaListParser.parse(str_));
+identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig), commaParser = combin.genTerm(/^,/ig), colonParser = combin.genTerm(/^:/ig), 
+//спросить (don't forget about functor)
+identListParser = new ParseModel_1.default((str_) => {
+    let commaColonParser = combin.seqAlt(commaParser, colonParser), identSeparParser = combin.functor(combin.seqApp(identParser, commaColonParser), (res) => {
+        if (res.result.length != 2)
+            return null; //i need in normal error here
+        return {
+            result: `${res.result[0]}${res.result[1]}`,
+            input: res.input,
+        };
+    }), listParser = combin.oneOrMany(identSeparParser), valueLanguage = '';
+    console.log('listParserTests: \n');
+    console.log(listParser.parse('asd, afd, fd:')); //good output
+    console.log(listParser.parse('dfsdf, , , , :')); //ошибку в такой ситуации можно выкинуть выше
+    return {
+        result: 'asd, afd, fd:',
+        input: ' logical;',
+    };
 });
 exports.varParser = varParser;
 exports.logicalParser = logicalParser;

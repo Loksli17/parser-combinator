@@ -18,7 +18,7 @@ console.log(parserIdentComma.parse('asdsad, asdasd, asd, asd:'));
 console.log(parser.binaryParser.parse(' | dsf'));
 
 
-let altSeqTest = combin.altSeq(parserIdent, parserComma);
+let altSeqTest = combin.seqAlt(parserIdent, parserComma);
 console.log(altSeqTest.parse('asdasd, adasd, adssad'));
 // let parser1 = combin.seqApp(parserIdent, parserComma);
 
@@ -35,6 +35,11 @@ console.log(seqAppR.parse('asdsad, begin'));
 
 let manyParser = combin.oneOrMany(seqApp);
 console.log(manyParser.parse('sdasd, asdasd aasd: logical;'));
+
+
+
+let identListParserTest = parser.identListParser;
+console.log(identListParserTest.parse('joli, kel, kek:'));
 
 
 

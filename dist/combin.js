@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.oneOrMany = exports.seqAppR = exports.seqAppL = exports.seqApp = exports.altSeq = exports.functor = exports.monadBind = exports.error = exports.genTerm = void 0;
+exports.oneOrMany = exports.seqAppR = exports.seqAppL = exports.seqApp = exports.seqAlt = exports.functor = exports.monadBind = exports.error = exports.genTerm = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 let 
 //@return Parser: string -> [term, other string]
@@ -43,12 +43,12 @@ functor = (a_, f_) => {
     });
 }, 
 //<|>
-altSeq = (a_, b_) => {
+seqAlt = (a_, b_) => {
     return new ParseModel_1.default((str_) => {
         let resA = a_.parse(str_);
         if (resA == null) {
             let resB = b_.parse(str_);
-            resB == null ? null : resB;
+            return resB == null ? null : resB;
         }
         ;
         return resA;
@@ -113,7 +113,7 @@ exports.genTerm = genTerm;
 exports.error = error;
 exports.monadBind = monadBind;
 exports.functor = functor;
-exports.altSeq = altSeq;
+exports.seqAlt = seqAlt;
 exports.seqApp = seqApp;
 exports.seqAppL = seqAppL;
 exports.seqAppR = seqAppR;
