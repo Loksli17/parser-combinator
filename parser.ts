@@ -8,54 +8,50 @@ let
     result  : string,
     fileData: string = fs.readFileSync('data.txt', 'utf-8');
 
+//подумать про ошибки в каждом из парсеров!!!!!!!!!!!!!!!!!!
+
 let 
-     varParser = combin.monadBind(combin.genTerm(/^var\s+/ig), (res_: string): Parser => {
-        return new Parser((input_: string): object | null => {
-            return {
-                result: 'Var\n',
-                input : input_, 
-            }
-        });
+    varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_: combin.parserRes): combin.parserRes => {
+        return {
+            result: 'Var',
+            input : res_.input,
+        };
     }),
 
-    equalParser = combin.monadBind(combin.genTerm(/^:=/ig), (res_: string): Parser => {
-        return new Parser((input_: string): object | null => {
-
-            if(res_ == null) return null;
-
-            return {
-                result: '=',
-                input : input_,
-            }
-        });
+    equalParser = combin.functor(combin.genTerm(/^:=/ig), (res_: combin.parserRes): combin.parserRes => {
+        return {
+            result: '=',
+            input : res_.input,
+        };
     }),
 
-    unaryParser = combin.genTerm(/^!/ig),
+    unaryParser = combin.functor(combin.genTerm(/^!/ig), (res_: combin.parserRes) => {
+        return {
+            result: '.NOT.',
+            input : res_.input,
+        };
+    }),
 
-    binaryParser = combin.monadBind(combin.genTerm(/^[\|\^\&]/ig), (res_: string): Parser => {
-        return new Parser((input_: string) => {
+    binaryParser = combin.functor(combin.genTerm(/^[\|\^\&]/ig), (res_: combin.parserRes) => {
+        
+        let result: string = '';
 
-            let result: string = '';
-
-            if(res_ == null) return null;
-
-            switch(res_){
-                case '|':
-                    result = 'OR';
-                    break;
-                case '^':
-                    result = 'XOR';
-                    break;
-                case '&':
-                    result = 'AND';
-                    break;
-            }
-
-            return{
-                result: result,
-                input : input_,
-            }
-        });
+        switch(res_.result){
+            case '|':
+                result = '.OR.';
+                break;
+            case '^':
+                result = '.XOR.';
+                break;
+            case '&':
+                result = '.AND.';
+                break;
+        }
+        
+        return {
+            result: result,
+            input : res_.input,
+        };
     }),
 
     //накинуть сверху вывод ошибки
@@ -65,28 +61,18 @@ let
 
     colonParser = combin.genTerm(/^:/ig),
 
-    beginParser = combin.monadBind(combin.genTerm(/^begin/ig), (res_: string): Parser => {
-        return new Parser((input_: string): object | null => {
-
-            if(res_ == null) return null;
-
-            return {
-                result: 'Begin',
-                input : input_, 
-            }
-        });
+    beginParser = combin.functor(combin.genTerm(/^begin/ig), (res_: combin.parserRes) => {
+        return {
+            result: 'Begin',
+            input : res_.input,
+        };
     }),
 
-    endParser = combin.monadBind(combin.genTerm(/^end/ig), (res_: string): Parser => {
-        return new Parser((input_: string): object | null => {
-
-            if(res_ == null) return null;
-
-            return {
-                result: 'End',
-                input : input_, 
-            }
-        });
+    endParser = combin.functor(combin.genTerm(/^end/ig),  (res_: combin.parserRes) => {
+        return {
+            result: 'End',
+            input : res_.input,
+        };
     }),
 
     semicolonParser = combin.genTerm(/^;/ig),
@@ -129,6 +115,15 @@ let
         return {
             result: 'asd, afd, fd:',
             input : ' logical;',
+        }
+    }),
+
+    expressionParser = new Parser((str_: string): combin.parserRes => {
+        
+
+        return {
+            result: '',
+            input : '',
         }
     });
  
