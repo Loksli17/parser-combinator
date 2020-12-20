@@ -4,15 +4,26 @@ import Parser     from './libs/ParseModel';
 import * as fs    from 'fs';
 
 
-interface genTermRes{
+interface parserRes{
+    result: any,
+    input : any,
+}
+
+interface genTermRes extends parserRes{
     result: string,
     input : string,
 }
 
-interface seqAppRes{
+interface seqAppRes extends parserRes{
     result: Array<genTermRes>,
     input : string,
 }
+
+interface manyRes extends parserRes{
+    result: Array<string>,
+    input : string,
+}
+
 
 let
     //@return Parser: string -> [term, other string]
@@ -104,20 +115,31 @@ let
         });
     },
 
-    repeat = (a_: Parser, value: string): Parser => {
-        return new Parser((str_: string) => {
-            let result: string = '';
+    oneOrMany = (a_: Parser): Parser => {
+        return new Parser((str_: string): manyRes | null => {
+
+            let 
+                tempInput: string            = '', 
+                resA     : parserRes | null  = a_.parse(str_),
+                res      : Array<any>        = [];
+
+            if(resA == null) return null;
+            
+            res.push(resA.result);
+            tempInput = resA.input;
 
             while(true){
-                let resA  : genTermRes = a_.parse(str_);
-                if(resA == null) return null;
-                if(resA.input == value) break;
-                result += resA.result + ' ';
-                str_ = str_.replace(resA.result, '');
+                resA = a_.parse(resA.input);
+                if(resA == null) break;
+                tempInput = resA.input; 
+                res.push(resA.result);
             }
 
-            return result == '' ? null : result;
-        })  
+            return {
+                result: res,
+                input : tempInput,
+            };
+        });
     };
 
 
@@ -136,7 +158,7 @@ export {
     seqAppL,
     seqAppR,
 
-    repeat
+    oneOrMany
 };
 
 

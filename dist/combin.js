@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.repeat = exports.seqAppR = exports.seqAppL = exports.seqApp = exports.altSeq = exports.functor = exports.monadBind = exports.error = exports.genTerm = void 0;
+exports.oneOrMany = exports.seqAppR = exports.seqAppL = exports.seqApp = exports.altSeq = exports.functor = exports.monadBind = exports.error = exports.genTerm = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 let 
 //@return Parser: string -> [term, other string]
@@ -89,19 +89,24 @@ seqAppR = (a_, b_) => {
             input: res.input,
         };
     });
-}, repeat = (a_, value) => {
+}, oneOrMany = (a_) => {
     return new ParseModel_1.default((str_) => {
-        let result = '';
+        let tempInput = '', resA = a_.parse(str_), res = [];
+        if (resA == null)
+            return null;
+        res.push(resA.result);
+        tempInput = resA.input;
         while (true) {
-            let resA = a_.parse(str_);
+            resA = a_.parse(resA.input);
             if (resA == null)
-                return null;
-            if (resA.input == value)
                 break;
-            result += resA.result + ' ';
-            str_ = str_.replace(resA.result, '');
+            tempInput = resA.input;
+            res.push(resA.result);
         }
-        return result == '' ? null : result;
+        return {
+            result: res,
+            input: tempInput,
+        };
     });
 };
 exports.genTerm = genTerm;
@@ -112,4 +117,4 @@ exports.altSeq = altSeq;
 exports.seqApp = seqApp;
 exports.seqAppL = seqAppL;
 exports.seqAppR = seqAppR;
-exports.repeat = repeat;
+exports.oneOrMany = oneOrMany;

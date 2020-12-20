@@ -37,3 +37,5 @@ let seqAppL = combin.seqAppL(parserIdent, parserComma);
 console.log(seqAppL.parse('asdsad, begin'));
 let seqAppR = combin.seqAppR(parserIdent, parserComma);
 console.log(seqAppR.parse('asdsad, begin'));
+let manyParser = combin.oneOrMany(seqApp);
+console.log(manyParser.parse('sdasd, asdasd aasd: logical;'));
