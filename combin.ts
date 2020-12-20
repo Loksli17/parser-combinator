@@ -65,13 +65,13 @@ let
     },
 
     //<|>
-    altSeq = (a_: Parser, b_: Parser): Parser => {
+    seqAlt = (a_: Parser, b_: Parser): Parser => {
         return new Parser((str_: string): Array<genTermRes> | null => {
             let resA = a_.parse(str_);
                 
             if(resA == null){
                 let resB = b_.parse(str_);
-                resB == null ? null : resB;
+                return resB == null ? null : resB;
             };
 
             return resA;
@@ -145,14 +145,17 @@ let
 
 
 export {
-    genTermRes, 
+    genTermRes,
+    parserRes,
+    seqAppRes,
+    manyRes,
 
     genTerm, 
     error, 
     
     monadBind,
     functor,
-    altSeq, 
+    seqAlt, 
 
     seqApp,
     seqAppL,
