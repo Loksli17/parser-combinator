@@ -62,6 +62,8 @@ let
     colonParser = combin.genTerm(/^:/ig),
 
     semicolonParser = combin.genTerm(/^;/ig),
+    
+    constParser = combin.genTerm(/^[10]/ig),
 
     beginParser = combin.functor(combin.genTerm(/^begin/ig), (res_: combin.parserRes) => {
         return {
@@ -191,15 +193,34 @@ let
         return resultParser.parse(str_);
     }),
 
+    
+    operandParser = new Parser((str_: string): combin.parserRes => {
+        return combin.seqAlt(identParser, constParser).parse(str_);
+    }),
+
     expressionParser = new Parser((str_: string): combin.parserRes => {
         
+        let 
+            unaryUndExrpParser = combin.functor(
+                combin.seqApp(unaryParser, underExpressionParser),
+                (res: combin.parserRes): combin.parserRes => {
+                    return {
+                        result: `${res.result[0]} ${res.result[1]}`,
+                        input : '',
+                    }
+                },
+            ),
+            resultParser = combin.seqAlt(unaryUndExrpParser, underExpressionParser);
 
+        return resultParser.parse(str_);
+    }),
+
+    underExpressionParser = new Parser((str_: string): combin.parserRes => {
         return {
-            result: '',
-            input : '',
-        }
+            result: '(a ^ b) & (a | c)',
+            input : ';',
+        };
     });
- 
 
 export {
     varParser,
@@ -215,8 +236,11 @@ export {
     binaryParser,
 
     identParser,
+    operandParser,
 
     varDecParser,
+    expressionParser,
+
 };
 
 

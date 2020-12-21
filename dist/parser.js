@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.varDecParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
+exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 const fs = __importStar(require("fs"));
 const combin = __importStar(require("./combin"));
@@ -62,7 +62,7 @@ let varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_) => {
     };
 }), 
 //накинуть сверху вывод ошибки
-identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig), commaParser = combin.genTerm(/^,/ig), colonParser = combin.genTerm(/^:/ig), semicolonParser = combin.genTerm(/^;/ig), beginParser = combin.functor(combin.genTerm(/^begin/ig), (res_) => {
+identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig), commaParser = combin.genTerm(/^,/ig), colonParser = combin.genTerm(/^:/ig), semicolonParser = combin.genTerm(/^;/ig), constParser = combin.genTerm(/^[10]/ig), beginParser = combin.functor(combin.genTerm(/^begin/ig), (res_) => {
     return {
         result: 'Begin',
         input: res_.input,
@@ -141,10 +141,20 @@ identListParser = new ParseModel_1.default((str_) => {
         };
     });
     return resultParser.parse(str_);
+}), operandParser = new ParseModel_1.default((str_) => {
+    return combin.seqAlt(identParser, constParser).parse(str_);
 }), expressionParser = new ParseModel_1.default((str_) => {
+    let unaryUndExrpParser = combin.functor(combin.seqApp(unaryParser, underExpressionParser), (res) => {
+        return {
+            result: `${res.result[0]} ${res.result[1]}`,
+            input: '',
+        };
+    }), resultParser = combin.seqAlt(unaryUndExrpParser, underExpressionParser);
+    return resultParser.parse(str_);
+}), underExpressionParser = new ParseModel_1.default((str_) => {
     return {
-        result: '',
-        input: '',
+        result: '(a ^ b) & (a | c)',
+        input: ';',
     };
 });
 exports.varParser = varParser;
@@ -157,6 +167,8 @@ exports.endParser = endParser;
 exports.logicalParser = logicalParser;
 exports.identListParser = identListParser;
 exports.varDecParser = varDecParser;
+exports.operandParser = operandParser;
+exports.expressionParser = expressionParser;
 // console.log(stringToTerminal(/(var)/ig,                           TypeStatus.keyword).parse(fileData));
 // console.log(stringToTerminal(/([\(\),;]|begin|end)/ig,            TypeStatus.separator).parse(fileData));
 // console.log(stringToTerminal(/[01]/ig,                            TypeStatus.const).parse(fileData));

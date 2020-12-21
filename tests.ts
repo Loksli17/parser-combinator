@@ -40,6 +40,9 @@ console.log(manyParser.parse('sdasd, asdasd aasd: logical;'));
 
 
 //parsers
+let operandParser = parser.operandParser;
+console.log('operand:', operandParser.parse('0'));
+
 let logicalParser = parser.logicalParser;
 console.log('logical:', logicalParser.parse('logical;'));
 
@@ -49,6 +52,10 @@ console.log(identListParserTest.parse('joli, kel, kek:'));
 let varDecParser = parser.varDecParser;
 console.log('varDecTest:', varDecParser.parse('var asd, asd, gdf: logical;')); //good output
 console.log('varDecTest:', varDecParser.parse('vAr aSD, g:')); //output null
+
+
+let undExprParser = parser.expressionParser;
+console.log(undExprParser.parse('(a ^ b) & (a | c)'));
 
 
 
