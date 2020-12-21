@@ -61,6 +61,8 @@ let
 
     colonParser = combin.genTerm(/^:/ig),
 
+    semicolonParser = combin.genTerm(/^;/ig),
+
     beginParser = combin.functor(combin.genTerm(/^begin/ig), (res_: combin.parserRes) => {
         return {
             result: 'Begin',
@@ -74,8 +76,6 @@ let
             input : res_.input,
         };
     }),
-
-    semicolonParser = combin.genTerm(/^;/ig),
 
     logicalParser = combin.functor(
         combin.seqApp(
@@ -94,9 +94,8 @@ let
     //спросить (don't forget about functor)
     identListParser = new Parser((str_: string): combin.parserRes => {
         let
-            commaColonParser: Parser = combin.seqAlt(commaParser, colonParser),
-            identSeparParser: Parser = combin.functor(
-                combin.seqApp(identParser, commaColonParser),
+            identColonParser: Parser = combin.functor(
+                combin.seqApp(identParser, colonParser),
                 (res: combin.parserRes): combin.parserRes | null => {
                     if(res.result.length != 2) return null; //i need in normal error here
                     return {
@@ -104,18 +103,92 @@ let
                         input : res.input,
                     };
                 },
-            ), 
-            listParser      : Parser = combin.oneOrMany(identSeparParser),
-            valueLanguage   : string = '';
+            ),
+            
+            identCommaParser: Parser = combin.functor(
+                combin.seqApp(identParser, commaParser),
+                (res: combin.parserRes) => {
+                    if(res.result.length != 2) return null; //i need in normal error here
+                    return {
+                        result: `${res.result[0]}${res.result[1]}`,
+                        input : res.input,
+                    }
+                },
+            ),
+
+            listIdentCommaParser: Parser = combin.functor(
+                combin.oneOrMany(identCommaParser),
+                (res: combin.parserRes) => {
+
+                    //проверка на null
+                    let valueLanguage: string = '';
+
+                    for(let i = 0; i < res.result.length; i++){
+                        valueLanguage += res.result[i] + ' ';
+                    }
+
+                    return {
+                        result: valueLanguage,
+                        input : res.input,
+                    }
+                }
+            ),
+    
+            listIdentCommaColonParser: Parser = combin.functor(
+                combin.seqApp(listIdentCommaParser, identColonParser),
+                (res: combin.parserRes) => {
+                    if(res.result.length != 2) return null; //i need in normal error here
+                    return {
+                        result: `${res.result[0]}${res.result[1]}`,
+                        input : res.input,
+                    }
+                },
+            ),
+
+            resultParser: Parser = combin.seqAlt(
+                identColonParser, 
+                listIdentCommaColonParser,
+            );
 
         console.log('\nlistParserTests:');
-        console.log(listParser.parse('   asd  , afd, fd:')); //good output
-        console.log(listParser.parse('dfsdf, , , , :')); //ошибку в такой ситуации можно выкинуть выше
+        console.log(resultParser.parse('   asd  , afd, fd:')); //good output
+        console.log(resultParser.parse(' fd  :')); //good output
+        console.log(resultParser.parse('asd, fd:')); //good output
+        console.log(resultParser.parse('asd, , fd:')); //null output
+        console.log(resultParser.parse('asd fd:')); //null output
+        console.log(resultParser.parse('fd')); //null output
+        console.log(resultParser.parse(':')); //null output
+        console.log('end list')
 
-        return {
-            result: 'asd, afd, fd:',
-            input : ' logical;',
-        }
+        return resultParser.parse(str_);
+    }),
+
+
+    varDecParser = new Parser((str_: string): combin.parserRes => {
+        
+        let 
+            parser1 = combin.functor(
+                combin.seqApp(varParser, identListParser),
+                (res: combin.parserRes) => {
+                    if(res.result.length != 2) return null; //i need in normal error here
+                    return {
+                        result: `${res.result[0]} ${res.result[1]}`,
+                        input : res.input,
+                    }                    
+                },
+            ),
+            resultParser = combin.functor(
+                combin.seqApp(parser1, logicalParser),
+                (res: combin.parserRes) => {
+                    if(res.result.length != 2) return null; //i need in normal error here
+                    return {
+                        result: `${res.result[0]} ${res.result[1]}`,
+                        input : res.input,
+                    } 
+                },
+            );
+        
+        return resultParser.parse(str_);
     }),
 
     expressionParser = new Parser((str_: string): combin.parserRes => {
@@ -141,7 +214,9 @@ export {
     unaryParser,
     binaryParser,
 
-    identParser, 
+    identParser,
+
+    varDecParser,
 };
 
 

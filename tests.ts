@@ -46,6 +46,9 @@ console.log('logical:', logicalParser.parse('logical;'));
 let identListParserTest = parser.identListParser;
 console.log(identListParserTest.parse('joli, kel, kek:'));
 
+let varDecParser = parser.varDecParser;
+console.log('varDecTest:', varDecParser.parse('var asd, asd, gdf: logical;')); //good output
+console.log('varDecTest:', varDecParser.parse('vAr aSD, g:')); //output null
 
 
 
