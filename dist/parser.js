@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
+exports.underExpressionParser = exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 const fs = __importStar(require("fs"));
 const combin = __importStar(require("./combin"));
@@ -72,46 +72,44 @@ identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig), commaParser 
         result: 'End',
         input: res_.input,
     };
-}), logicalParser = combin.functor(combin.seqApp(combin.genTerm(/^logical/ig), semicolonParser), (res) => {
-    if (res.result.length != 2)
+}), logicalParser = combin.functor(combin.seqApp(combin.genTerm(/^logical/ig), semicolonParser), (res_) => {
+    if (res_.result.length != 2)
         return null; //normal error here
     return {
         result: `Boolean;`,
-        input: res.input,
+        input: res_.input,
     };
-}), 
-//спросить (don't forget about functor)
-identListParser = new ParseModel_1.default((str_) => {
-    let identColonParser = combin.functor(combin.seqApp(identParser, colonParser), (res) => {
-        if (res.result.length != 2)
+}), identListParser = new ParseModel_1.default((str_) => {
+    let identColonParser = combin.functor(combin.seqApp(identParser, colonParser), (res_) => {
+        if (res_.result.length != 2)
             return null; //i need in normal error here
         return {
-            result: `${res.result[0]}${res.result[1]}`,
-            input: res.input,
+            result: `${res_.result[0]}${res_.result[1]}`,
+            input: res_.input,
         };
-    }), identCommaParser = combin.functor(combin.seqApp(identParser, commaParser), (res) => {
-        if (res.result.length != 2)
+    }), identCommaParser = combin.functor(combin.seqApp(identParser, commaParser), (res_) => {
+        if (res_.result.length != 2)
             return null; //i need in normal error here
         return {
-            result: `${res.result[0]}${res.result[1]}`,
-            input: res.input,
+            result: `${res_.result[0]}${res_.result[1]}`,
+            input: res_.input,
         };
-    }), listIdentCommaParser = combin.functor(combin.oneOrMany(identCommaParser), (res) => {
+    }), listIdentCommaParser = combin.functor(combin.oneOrMany(identCommaParser), (res_) => {
         //проверка на null
         let valueLanguage = '';
-        for (let i = 0; i < res.result.length; i++) {
-            valueLanguage += res.result[i] + ' ';
+        for (let i = 0; i < res_.result.length; i++) {
+            valueLanguage += res_.result[i] + ' ';
         }
         return {
             result: valueLanguage,
-            input: res.input,
+            input: res_.input,
         };
-    }), listIdentCommaColonParser = combin.functor(combin.seqApp(listIdentCommaParser, identColonParser), (res) => {
-        if (res.result.length != 2)
+    }), listIdentCommaColonParser = combin.functor(combin.seqApp(listIdentCommaParser, identColonParser), (res_) => {
+        if (res_.result.length != 2)
             return null; //i need in normal error here
         return {
-            result: `${res.result[0]}${res.result[1]}`,
-            input: res.input,
+            result: `${res_.result[0]}${res_.result[1]}`,
+            input: res_.input,
         };
     }), resultParser = combin.seqAlt(identColonParser, listIdentCommaColonParser);
     console.log('\nlistParserTests:');
@@ -125,19 +123,20 @@ identListParser = new ParseModel_1.default((str_) => {
     console.log('end list');
     return resultParser.parse(str_);
 }), varDecParser = new ParseModel_1.default((str_) => {
-    let parser1 = combin.functor(combin.seqApp(varParser, identListParser), (res) => {
-        if (res.result.length != 2)
+    let parser1 = combin.functor(combin.seqApp(varParser, identListParser), (res_) => {
+        if (res_.result.length != 2)
             return null; //i need in normal error here
+        console.log('varDecParserDebug:', res_);
         return {
-            result: `${res.result[0]} ${res.result[1]}`,
-            input: res.input,
+            result: `${res_.result[0]} ${res_.result[1]}`,
+            input: res_.input,
         };
-    }), resultParser = combin.functor(combin.seqApp(parser1, logicalParser), (res) => {
-        if (res.result.length != 2)
+    }), resultParser = combin.functor(combin.seqApp(parser1, logicalParser), (res_) => {
+        if (res_.result.length != 2)
             return null; //i need in normal error here
         return {
-            result: `${res.result[0]} ${res.result[1]}`,
-            input: res.input,
+            result: `${res_.result[0]} ${res_.result[1]}`,
+            input: res_.input,
         };
     });
     return resultParser.parse(str_);
@@ -152,9 +151,23 @@ identListParser = new ParseModel_1.default((str_) => {
     }), resultParser = combin.seqAlt(unaryUndExrpParser, underExpressionParser);
     return resultParser.parse(str_);
 }), underExpressionParser = new ParseModel_1.default((str_) => {
+    let expressionBracParser = combin.functor(combin.seqAppR(combin.genTerm(/^\(/ig), expressionParser), (res_) => {
+        console.log('deeebug', res_);
+        return {
+            result: `(${res_.result}`,
+            input: res_.input,
+        };
+    }), expressionFullParser = combin.functor(combin.seqAppL(expressionBracParser, combin.genTerm(/^\)/ig)), (res_) => {
+        console.log('aa', res_);
+        return {
+            result: `${res_.result})`,
+            input: '',
+        };
+    });
+    console.log('fff:', expressionFullParser.parse(str_));
     return {
-        result: '(a ^ b) & (a | c)',
-        input: ';',
+        result: 'a ^ b',
+        input: ');',
     };
 });
 exports.varParser = varParser;
@@ -169,6 +182,7 @@ exports.identListParser = identListParser;
 exports.varDecParser = varDecParser;
 exports.operandParser = operandParser;
 exports.expressionParser = expressionParser;
+exports.underExpressionParser = underExpressionParser;
 // console.log(stringToTerminal(/(var)/ig,                           TypeStatus.keyword).parse(fileData));
 // console.log(stringToTerminal(/([\(\),;]|begin|end)/ig,            TypeStatus.separator).parse(fileData));
 // console.log(stringToTerminal(/[01]/ig,                            TypeStatus.const).parse(fileData));

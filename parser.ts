@@ -84,65 +84,64 @@ let
             combin.genTerm(/^logical/ig),
             semicolonParser,
         ),
-        (res: combin.parserRes): combin.parserRes | null => {
-            if(res.result.length != 2) return null; //normal error here
+        (res_: combin.parserRes): combin.parserRes | null => {
+            if(res_.result.length != 2) return null; //normal error here
             return {
                 result: `Boolean;`,
-                input : res.input,
+                input : res_.input,
             };
         },
     ),
    
-    //спросить (don't forget about functor)
     identListParser = new Parser((str_: string): combin.parserRes => {
         let
             identColonParser: Parser = combin.functor(
                 combin.seqApp(identParser, colonParser),
-                (res: combin.parserRes): combin.parserRes | null => {
-                    if(res.result.length != 2) return null; //i need in normal error here
+                (res_: combin.parserRes): combin.parserRes | null => {
+                    if(res_.result.length != 2) return null; //i need in normal error here
                     return {
-                        result: `${res.result[0]}${res.result[1]}`,
-                        input : res.input,
+                        result: `${res_.result[0]}${res_.result[1]}`,
+                        input : res_.input,
                     };
                 },
             ),
             
             identCommaParser: Parser = combin.functor(
                 combin.seqApp(identParser, commaParser),
-                (res: combin.parserRes) => {
-                    if(res.result.length != 2) return null; //i need in normal error here
+                (res_: combin.parserRes) => {
+                    if(res_.result.length != 2) return null; //i need in normal error here
                     return {
-                        result: `${res.result[0]}${res.result[1]}`,
-                        input : res.input,
+                        result: `${res_.result[0]}${res_.result[1]}`,
+                        input : res_.input,
                     }
                 },
             ),
 
             listIdentCommaParser: Parser = combin.functor(
                 combin.oneOrMany(identCommaParser),
-                (res: combin.parserRes) => {
+                (res_: combin.parserRes) => {
 
                     //проверка на null
                     let valueLanguage: string = '';
 
-                    for(let i = 0; i < res.result.length; i++){
-                        valueLanguage += res.result[i] + ' ';
+                    for(let i = 0; i < res_.result.length; i++){
+                        valueLanguage += res_.result[i] + ' ';
                     }
 
                     return {
                         result: valueLanguage,
-                        input : res.input,
+                        input : res_.input,
                     }
                 }
             ),
     
             listIdentCommaColonParser: Parser = combin.functor(
                 combin.seqApp(listIdentCommaParser, identColonParser),
-                (res: combin.parserRes) => {
-                    if(res.result.length != 2) return null; //i need in normal error here
+                (res_: combin.parserRes) => {
+                    if(res_.result.length != 2) return null; //i need in normal error here
                     return {
-                        result: `${res.result[0]}${res.result[1]}`,
-                        input : res.input,
+                        result: `${res_.result[0]}${res_.result[1]}`,
+                        input : res_.input,
                     }
                 },
             ),
@@ -171,21 +170,22 @@ let
         let 
             parser1 = combin.functor(
                 combin.seqApp(varParser, identListParser),
-                (res: combin.parserRes) => {
-                    if(res.result.length != 2) return null; //i need in normal error here
+                (res_: combin.parserRes) => {
+                    if(res_.result.length != 2) return null; //i need in normal error here
+                    console.log('varDecParserDebug:', res_);
                     return {
-                        result: `${res.result[0]} ${res.result[1]}`,
-                        input : res.input,
+                        result: `${res_.result[0]} ${res_.result[1]}`,
+                        input : res_.input,
                     }                    
                 },
             ),
             resultParser = combin.functor(
                 combin.seqApp(parser1, logicalParser),
-                (res: combin.parserRes) => {
-                    if(res.result.length != 2) return null; //i need in normal error here
+                (res_: combin.parserRes) => {
+                    if(res_.result.length != 2) return null; //i need in normal error here
                     return {
-                        result: `${res.result[0]} ${res.result[1]}`,
-                        input : res.input,
+                        result: `${res_.result[0]} ${res_.result[1]}`,
+                        input : res_.input,
                     } 
                 },
             );
@@ -216,9 +216,30 @@ let
     }),
 
     underExpressionParser = new Parser((str_: string): combin.parserRes => {
+
+        let 
+            expressionBracParser = combin.functor(
+                combin.seqAppR(combin.genTerm(/^\(/ig), expressionParser),
+                (res_: combin.parserRes) => {
+                    return {
+                        result: `(${res_.result}`,
+                        input : res_.input,
+                    }
+                }
+            ),
+            expressionFullParser = combin.functor(
+                combin.seqAppL(expressionBracParser, combin.genTerm(/^\)/ig)),
+                (res_: combin.parserRes) => {
+                    return {
+                        result: `${res_.result})`,
+                        input : '',
+                    }
+                }
+            );
+
         return {
-            result: '(a ^ b) & (a | c)',
-            input : ';',
+            result: 'a ^ b',
+            input : ');',
         };
     });
 
@@ -240,6 +261,7 @@ export {
 
     varDecParser,
     expressionParser,
+    underExpressionParser,
 
 };
 

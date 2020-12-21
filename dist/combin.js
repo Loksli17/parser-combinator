@@ -11,6 +11,7 @@ genTerm = (reg_) => {
     return new ParseModel_1.default((str_) => {
         str_ = str_.replace(/^\s*/, ''); //trum many spaces
         let arr = str_.match(reg_);
+        console.log('genTerm', arr, str_);
         return arr == null ? null : {
             result: arr[0],
             input: str_.replace(arr[0], ''),
@@ -75,6 +76,7 @@ seqApp = (a_, b_) => {
 //<*
 seqAppL = (a_, b_) => {
     return functor(seqApp(a_, b_), (res) => {
+        console.log('aazaza', res);
         return {
             result: res.result[0],
             input: res.input,

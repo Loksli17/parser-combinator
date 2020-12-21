@@ -40,22 +40,16 @@ console.log(manyParser.parse('sdasd, asdasd aasd: logical;'));
 
 
 //parsers
-let operandParser = parser.operandParser;
-console.log('operand:', operandParser.parse('0'));
-
-let logicalParser = parser.logicalParser;
-console.log('logical:', logicalParser.parse('logical;'));
-
-let identListParserTest = parser.identListParser;
-console.log(identListParserTest.parse('joli, kel, kek:'));
-
 let varDecParser = parser.varDecParser;
 console.log('varDecTest:', varDecParser.parse('var asd, asd, gdf: logical;')); //good output
 console.log('varDecTest:', varDecParser.parse('vAr aSD, g:')); //output null
 
+let bracket = combin.genTerm(/^\(/ig);
+console.log(bracket.parse('( a & b )'));
 
-let undExprParser = parser.expressionParser;
-console.log(undExprParser.parse('(a ^ b) & (a | c)'));
+console.log('\n\n');
+let underExpressionParser = parser.underExpressionParser;
+console.log(underExpressionParser.parse('(a ^ b);'));
 
 
 
