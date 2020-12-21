@@ -48,8 +48,8 @@ let bracket = combin.genTerm(/^\(/ig);
 console.log(bracket.parse('( a & b )'));
 
 console.log('\n\n');
-let underExpressionParser = parser.underExpressionParser;
-console.log(underExpressionParser.parse('(a ^ b);'));
+let exprParser = parser.expressionParser;
+console.log(exprParser.parse('asd ^ sad'));
 
 
 

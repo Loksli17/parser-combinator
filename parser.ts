@@ -9,6 +9,7 @@ let
     fileData: string = fs.readFileSync('data.txt', 'utf-8');
 
 //подумать про ошибки в каждом из парсеров!!!!!!!!!!!!!!!!!!
+//seq удалить проверку на длину массива
 
 let 
     varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_: combin.parserRes): combin.parserRes => {
@@ -221,12 +222,14 @@ let
             expressionBracParser = combin.functor(
                 combin.seqAppR(combin.genTerm(/^\(/ig), expressionParser),
                 (res_: combin.parserRes) => {
+                    console.log();
                     return {
                         result: `(${res_.result}`,
                         input : res_.input,
                     }
                 }
             ),
+
             expressionFullParser = combin.functor(
                 combin.seqAppL(expressionBracParser, combin.genTerm(/^\)/ig)),
                 (res_: combin.parserRes) => {
@@ -235,12 +238,35 @@ let
                         input : '',
                     }
                 }
-            );
+            ),
 
-        return {
-            result: 'a ^ b',
-            input : ');',
-        };
+            seqAltParser1 = combin.seqAlt(expressionFullParser, operandParser),
+
+            undExprParser = combin.functor(
+                combin.seqApp(underExpressionParser, binaryParser),
+                (res_:combin.parserRes): combin.parserRes | null => {
+                    if(res_.result.length != 2) return null;
+                    return {
+                        result: `${res_.result[0]} ${res_.result[1]}`,
+                        input : res_.input,
+                    }
+                },
+            ),
+
+            undExprFullParser = combin.functor(
+                combin.seqApp(undExprParser, underExpressionParser),
+                (res_: combin.parserRes): combin.parserRes | null => {
+                    if(res_.result.length != 2) return null;
+                    return {
+                        result: `${res_.result[0]} ${res_.result[1]}`,
+                        input : res_.input,
+                    }
+                }
+            ),
+
+            resultParser = combin.seqAlt(seqAltParser1, undExprFullParser);
+
+        return resultParser.parse(expressionParser);
     });
 
 export {

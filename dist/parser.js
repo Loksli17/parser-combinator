@@ -28,6 +28,7 @@ const fs = __importStar(require("fs"));
 const combin = __importStar(require("./combin"));
 let result, fileData = fs.readFileSync('data.txt', 'utf-8');
 //подумать про ошибки в каждом из парсеров!!!!!!!!!!!!!!!!!!
+//seq удалить проверку на длину массива
 let varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_) => {
     return {
         result: 'Var',
@@ -152,23 +153,32 @@ identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig), commaParser 
     return resultParser.parse(str_);
 }), underExpressionParser = new ParseModel_1.default((str_) => {
     let expressionBracParser = combin.functor(combin.seqAppR(combin.genTerm(/^\(/ig), expressionParser), (res_) => {
-        console.log('deeebug', res_);
+        console.log();
         return {
             result: `(${res_.result}`,
             input: res_.input,
         };
     }), expressionFullParser = combin.functor(combin.seqAppL(expressionBracParser, combin.genTerm(/^\)/ig)), (res_) => {
-        console.log('aa', res_);
         return {
             result: `${res_.result})`,
             input: '',
         };
-    });
-    console.log('fff:', expressionFullParser.parse(str_));
-    return {
-        result: 'a ^ b',
-        input: ');',
-    };
+    }), seqAltParser1 = combin.seqAlt(expressionFullParser, operandParser), undExprParser = combin.functor(combin.seqApp(underExpressionParser, binaryParser), (res_) => {
+        if (res_.result.length != 2)
+            return null;
+        return {
+            result: `${res_.result[0]} ${res_.result[1]}`,
+            input: res_.input,
+        };
+    }), undExprFullParser = combin.functor(combin.seqApp(undExprParser, underExpressionParser), (res_) => {
+        if (res_.result.length != 2)
+            return null;
+        return {
+            result: `${res_.result[0]} ${res_.result[1]}`,
+            input: res_.input,
+        };
+    }), resultParser = combin.seqAlt(seqAltParser1, undExprFullParser);
+    return resultParser.parse(expressionParser);
 });
 exports.varParser = varParser;
 exports.equalParser = equalParser;
