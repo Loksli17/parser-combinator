@@ -29,6 +29,7 @@ let
     //@return Parser: string -> [term, other string]
     genTerm = (reg_: RegExp): Parser => {
         return new Parser((str_: string): genTermRes | null => {
+            // console.log('genTerm:', str_);
             str_ = str_.replace(/^\s*/, ''); //trum many spaces
             let arr: RegExpMatchArray | null = str_.match(reg_);
             return arr == null ? null : {
@@ -67,10 +68,14 @@ let
     //<|>
     seqAlt = (a_: Parser, b_: Parser): Parser => {
         return new Parser((str_: string): Array<genTermRes> | null => {
+            // console.log('seqAlt string:', str_);
             let resA = a_.parse(str_);
-                
+            // console.log('seqAlt resA:', resA);
             if(resA == null){
+                // console.log('seqAltSTr B parser', str_);
+                // console.log('wooooork', b_.parse(str_));
                 let resB = b_.parse(str_);
+                // console.log('seqAlt resB:', resB);
                 return resB == null ? null : resB;
             };
 
@@ -84,6 +89,7 @@ let
             let resA = a_.parse(str_);
             if(resA == null) return null;
             let resB = b_.parse(resA.input);
+            console.log('seqApp', resA, resB);
             if(resB == null) return null;
             return {
                 result: [

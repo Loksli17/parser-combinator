@@ -37,8 +37,8 @@ let seqAppL = combin.seqAppL(parserIdent, parserComma);
 console.log(seqAppL.parse('asdsad, begin'));
 let seqAppR = combin.seqAppR(parserIdent, parserComma);
 console.log(seqAppR.parse('asdsad, begin'));
-let manyParser = combin.oneOrMany(seqApp);
-console.log(manyParser.parse('sdasd, asdasd aasd: logical;'));
+// let manyParser = combin.oneOrMany(seqApp);
+// console.log(manyParser.parse('sdasd, asdasd aasd: logical;'));
 //parsers
 let varDecParser = parser.varDecParser;
 console.log('varDecTest:', varDecParser.parse('var asd, asd, gdf: logical;')); //good output
@@ -46,5 +46,5 @@ console.log('varDecTest:', varDecParser.parse('vAr aSD, g:')); //output null
 let bracket = combin.genTerm(/^\(/ig);
 console.log(bracket.parse('( a & b )'));
 console.log('\n\n');
-let exprParser = parser.expressionParser;
-console.log(exprParser.parse('asd ^ sad'));
+let undExprParser = parser.underExpressionParser;
+console.log('HELLO THERE', undExprParser.parse('!a 1'));

@@ -3,6 +3,7 @@ import Lexem       from './libs/lexem';
 import Parser      from './libs/ParseModel';
 import * as fs     from 'fs';
 import * as combin from './combin';
+import { spawn } from 'child_process';
 
 let
     result  : string,
@@ -56,7 +57,13 @@ let
     }),
 
     //накинуть сверху вывод ошибки
-    identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig),
+    identParser = combin.functor(
+        combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig),
+        (res_: string) => {
+            console.log('ident:', res_);
+            return res_;
+        }
+    ),
 
     commaParser = combin.genTerm(/^,/ig),
 
@@ -152,16 +159,6 @@ let
                 listIdentCommaColonParser,
             );
 
-        console.log('\nlistParserTests:');
-        console.log(resultParser.parse('   asd  , afd, fd:')); //good output
-        console.log(resultParser.parse(' fd  :')); //good output
-        console.log(resultParser.parse('asd, fd:')); //good output
-        console.log(resultParser.parse('asd, , fd:')); //null output
-        console.log(resultParser.parse('asd fd:')); //null output
-        console.log(resultParser.parse('fd')); //null output
-        console.log(resultParser.parse(':')); //null output
-        console.log('end list')
-
         return resultParser.parse(str_);
     }),
 
@@ -194,79 +191,90 @@ let
         return resultParser.parse(str_);
     }),
 
-    
     operandParser = new Parser((str_: string): combin.parserRes => {
+        console.log('oooooo', str_);
+        console.log('operand:', combin.seqAlt(identParser, constParser).parse(str_));
         return combin.seqAlt(identParser, constParser).parse(str_);
     }),
 
-    expressionParser = new Parser((str_: string): combin.parserRes => {
-        
-        let 
-            unaryUndExrpParser = combin.functor(
-                combin.seqApp(unaryParser, underExpressionParser),
-                (res: combin.parserRes): combin.parserRes => {
+    unaryOperandParser = new Parser((str_: string): combin.parserRes => {
+
+        console.log(str_);
+
+        let
+            unrOperParser = combin.functor(
+                combin.seqApp(
+                    unaryParser,
+                    operandParser,
+                ), 
+                (res_: combin.parserRes) => {
                     return {
-                        result: `${res.result[0]} ${res.result[1]}`,
-                        input : '',
+                        result: `${res_.result[0]} ${res_.result[1]}`,
+                        input : res_.input,
                     }
-                },
+                }
             ),
-            resultParser = combin.seqAlt(unaryUndExrpParser, underExpressionParser);
+            resultParser = combin.seqAlt(
+                unrOperParser,
+                operandParser,
+            );
 
         return resultParser.parse(str_);
     }),
 
+    // expressionParser = new Parser((str_: string): combin.parserRes => {
+        
+    //     let 
+    //         unaryUndExrpParser = combin.functor(
+    //             combin.seqApp(unaryParser, underExpressionParser),
+    //             (res: combin.parserRes): combin.parserRes => {
+    //                 return {
+    //                     result: `${res.result[0]} ${res.result[1]}`,
+    //                     input : '',
+    //                 }
+    //             },
+    //         ),
+    //         resultParser = combin.seqAlt(unaryUndExrpParser, underExpressionParser);
+
+    //     return resultParser.parse(str_);
+    // }),
+
     underExpressionParser = new Parser((str_: string): combin.parserRes => {
 
-        let 
-            expressionBracParser = combin.functor(
-                combin.seqAppR(combin.genTerm(/^\(/ig), expressionParser),
-                (res_: combin.parserRes) => {
-                    console.log();
-                    return {
-                        result: `(${res_.result}`,
-                        input : res_.input,
-                    }
-                }
-            ),
-
-            expressionFullParser = combin.functor(
-                combin.seqAppL(expressionBracParser, combin.genTerm(/^\)/ig)),
-                (res_: combin.parserRes) => {
-                    return {
-                        result: `${res_.result})`,
-                        input : '',
-                    }
-                }
-            ),
-
-            seqAltParser1 = combin.seqAlt(expressionFullParser, operandParser),
-
+        console.log('UNDER EXPR PARSER', str_);
+        
+        let
             undExprParser = combin.functor(
-                combin.seqApp(underExpressionParser, binaryParser),
-                (res_:combin.parserRes): combin.parserRes | null => {
-                    if(res_.result.length != 2) return null;
+                combin.seqApp(
+                    combin.seqAlt(
+                        combin.functor(
+                            combin.seqApp(unaryOperandParser, binaryParser),
+                            (res_: combin.parserRes): combin.parserRes => {
+                                console.log('undExpr:', res_);
+                                return {
+                                    result: `${res_.result[0]} ${res_.result[1]}`,
+                                    input : res_.input,
+                                }
+                            }
+                        ),
+                        unaryOperandParser
+                    ),
+                    combin.seqAlt(
+                        underExpressionParser,
+                        combin.genTerm(/\s*/ig),
+                    ),
+                ),
+                (res_: combin.parserRes): combin.parserRes => {
+                    console.log('EXPR:', res_, res_.result[1] == '');
+                    let space: string = res_.result[1] == '' ? '' : ' ';
                     return {
-                        result: `${res_.result[0]} ${res_.result[1]}`,
-                        input : res_.input,
-                    }
-                },
-            ),
-
-            undExprFullParser = combin.functor(
-                combin.seqApp(undExprParser, underExpressionParser),
-                (res_: combin.parserRes): combin.parserRes | null => {
-                    if(res_.result.length != 2) return null;
-                    return {
-                        result: `${res_.result[0]} ${res_.result[1]}`,
+                        result: `${res_.result[0]}${space}${res_.result[1]}`,
                         input : res_.input,
                     }
                 }
-            ),
+            );            
 
-            resultParser = combin.seqAlt(seqAltParser1, undExprFullParser);
-
-        return resultParser.parse(expressionParser);
+        return undExprParser.parse(str_);
     });
 
 export {
@@ -286,9 +294,8 @@ export {
     operandParser,
 
     varDecParser,
-    expressionParser,
+    // expressionParser,
     underExpressionParser,
-
 };
 
 

@@ -9,6 +9,7 @@ let
 //@return Parser: string -> [term, other string]
 genTerm = (reg_) => {
     return new ParseModel_1.default((str_) => {
+        // console.log('genTerm:', str_);
         str_ = str_.replace(/^\s*/, ''); //trum many spaces
         let arr = str_.match(reg_);
         return arr == null ? null : {
@@ -45,9 +46,14 @@ functor = (a_, f_) => {
 //<|>
 seqAlt = (a_, b_) => {
     return new ParseModel_1.default((str_) => {
+        // console.log('seqAlt string:', str_);
         let resA = a_.parse(str_);
+        // console.log('seqAlt resA:', resA);
         if (resA == null) {
+            // console.log('seqAltSTr B parser', str_);
+            // console.log('wooooork', b_.parse(str_));
             let resB = b_.parse(str_);
+            // console.log('seqAlt resB:', resB);
             return resB == null ? null : resB;
         }
         ;
@@ -61,6 +67,7 @@ seqApp = (a_, b_) => {
         if (resA == null)
             return null;
         let resB = b_.parse(resA.input);
+        console.log('seqApp', resA, resB);
         if (resB == null)
             return null;
         return {
