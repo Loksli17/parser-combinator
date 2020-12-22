@@ -47,7 +47,7 @@ console.log(bracket.parse('( a & b )'));
 
 console.log('\n\n');
 let undExprParser = parser.underExpressionParser;
-console.log('HELLO THERE', undExprParser.parse('!a 1'));
+console.log('HELLO THERE', undExprParser.parse('!a ^ b | a & 0'));
 
 
 

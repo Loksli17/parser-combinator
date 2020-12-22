@@ -165,17 +165,14 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
 // }),
 underExpressionParser = new ParseModel_1.default((str_) => {
     console.log('UNDER EXPR PARSER', str_);
-    let undExprParser = combin.functor(combin.seqApp(combin.seqAlt(combin.functor(combin.seqApp(unaryOperandParser, binaryParser), (res_) => {
-        console.log('undExpr:', res_);
+    let undExprParser = combin.functor(combin.seqApp(combin.functor(combin.seqApp(unaryOperandParser, binaryParser), (res_) => {
         return {
             result: `${res_.result[0]} ${res_.result[1]}`,
             input: res_.input,
         };
-    }), unaryOperandParser), combin.seqAlt(underExpressionParser, combin.genTerm(/\s*/ig))), (res_) => {
-        console.log('EXPR:', res_, res_.result[1] == '');
-        let space = res_.result[1] == '' ? '' : ' ';
+    }), combin.seqAlt(underExpressionParser, unaryOperandParser)), (res_) => {
         return {
-            result: `${res_.result[0]}${space}${res_.result[1]}`,
+            result: `${res_.result[0]} ${res_.result[1]}`,
             input: res_.input,
         };
     });

@@ -246,33 +246,27 @@ let
         let
             undExprParser = combin.functor(
                 combin.seqApp(
-                    combin.seqAlt(
-                        combin.functor(
-                            combin.seqApp(unaryOperandParser, binaryParser),
-                            (res_: combin.parserRes): combin.parserRes => {
-                                console.log('undExpr:', res_);
-                                return {
-                                    result: `${res_.result[0]} ${res_.result[1]}`,
-                                    input : res_.input,
-                                }
+                    combin.functor(
+                        combin.seqApp(unaryOperandParser, binaryParser),
+                        (res_: combin.parserRes): combin.parserRes => {
+                            return {
+                                result: `${res_.result[0]} ${res_.result[1]}`,
+                                input : res_.input,
                             }
-                        ),
-                        unaryOperandParser
+                        }
                     ),
                     combin.seqAlt(
                         underExpressionParser,
-                        combin.genTerm(/\s*/ig),
-                    ),
+                        unaryOperandParser
+                    )
                 ),
                 (res_: combin.parserRes): combin.parserRes => {
-                    console.log('EXPR:', res_, res_.result[1] == '');
-                    let space: string = res_.result[1] == '' ? '' : ' ';
                     return {
-                        result: `${res_.result[0]}${space}${res_.result[1]}`,
+                        result: `${res_.result[0]} ${res_.result[1]}`,
                         input : res_.input,
                     }
-                }
-            );            
+                } 
+            );        
 
         return undExprParser.parse(str_);
     });
