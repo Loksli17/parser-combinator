@@ -55,7 +55,8 @@ let seqAppR = combin.seqAppR(parserIdent, parserComma);
 // let assignList = parser.assignmentListParser;
 // console.log('ASSIGN LIST:', assignList.parse('a := a | b; b := (a ^ !b | (a & b)); c := 1 | 0;').result)
 
-
+let parser1 = parser.languageParser;
+console.log(parser1.parse('var a: logical; begin a := 0 ^ a; a := 1; end').result);
 
 
 

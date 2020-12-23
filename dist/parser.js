@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assignmentListParser = exports.assignmentParser = exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
+exports.languageParser = exports.assignmentListParser = exports.assignmentParser = exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 const fs = __importStar(require("fs"));
 const combin = __importStar(require("./combin"));
@@ -191,15 +191,34 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
         //проверка на null
         let valueLanguage = '';
         for (let i = 0; i < res_.result.length; i++) {
-            valueLanguage += res_.result[i] + '\n';
+            valueLanguage += '\t' + res_.result[i];
+            if (i != res_.result.length - 1)
+                valueLanguage += '\n';
         }
         return {
             result: valueLanguage,
             input: res_.input,
         };
     });
-    console.log(listParser.parse(str_));
     return listParser.parse(str_);
+}), languageParser = new ParseModel_1.default((str_) => {
+    let resultParser = combin.functor(combin.seqApp(combin.functor(combin.seqApp(combin.functor(combin.seqApp(varDecParser, beginParser), (res_) => {
+        return {
+            result: `${res_.result[0]} \n ${res_.result[1]}`,
+            input: res_.input,
+        };
+    }), assignmentListParser), (res_) => {
+        return {
+            result: `${res_.result[0]} \n ${res_.result[1]}`,
+            input: res_.input,
+        };
+    }), endParser), (res_) => {
+        return {
+            result: `${res_.result[0]} \n ${res_.result[1]}`,
+            input: res_.input,
+        };
+    });
+    return resultParser.parse(str_);
 });
 exports.varParser = varParser;
 exports.equalParser = equalParser;
@@ -215,6 +234,7 @@ exports.operandParser = operandParser;
 exports.expressionParser = expressionParser;
 exports.assignmentParser = assignmentParser;
 exports.assignmentListParser = assignmentListParser;
+exports.languageParser = languageParser;
 // console.log(stringToTerminal(/(var)/ig,                           TypeStatus.keyword).parse(fileData));
 // console.log(stringToTerminal(/([\(\),;]|begin|end)/ig,            TypeStatus.separator).parse(fileData));
 // console.log(stringToTerminal(/[01]/ig,                            TypeStatus.const).parse(fileData));

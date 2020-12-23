@@ -48,7 +48,9 @@ let seqAppR = combin.seqAppR(parserIdent, parserComma);
 // console.log('\n\n');
 // let exprParser = parser.expressionParser;
 // // console.log('HELLO THERE', exprParser.parse('((!a ^ b) ^ (!a | b) ^ c)'));
-let assign = parser.assignmentParser;
-console.log('ASSIGN:', assign.parse('ff := (a ^ !b | (a & b));'));
-let assignList = parser.assignmentListParser;
-console.log('ASSIGN LIST:', assignList.parse('a := a | b; b := (a ^ !b | (a & b)); c := 1 | 0;').result);
+// let assign = parser.assignmentParser;
+// console.log('ASSIGN:', assign.parse('ff := (a ^ !b | (a & b));'));
+// let assignList = parser.assignmentListParser;
+// console.log('ASSIGN LIST:', assignList.parse('a := a | b; b := (a ^ !b | (a & b)); c := 1 | 0;').result)
+let parser1 = parser.languageParser;
+console.log(parser1.parse('var a: logical; begin a := 0 ^ a; a := 1; end').result);

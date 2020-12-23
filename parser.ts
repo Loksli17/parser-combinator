@@ -338,7 +338,8 @@ let
                 let valueLanguage: string = '';
 
                 for(let i = 0; i < res_.result.length; i++){
-                    valueLanguage += res_.result[i] + '\n';
+                    valueLanguage += '\t' + res_.result[i];
+                    if(i != res_.result.length - 1) valueLanguage += '\n';
                 }
 
                 return {
@@ -348,10 +349,45 @@ let
             }
         );
 
-        console.log(listParser.parse(str_));
-
         return listParser.parse(str_);
 
+    }),
+
+    languageParser = new Parser((str_: string) => {
+
+        let resultParser = combin.functor(
+            combin.seqApp(
+                combin.functor(
+                    combin.seqApp(
+                        combin.functor(
+                            combin.seqApp(varDecParser, beginParser),
+                            (res_: combin.parserRes): combin.parserRes => {
+                                return {
+                                    result: `${res_.result[0]} \n ${res_.result[1]}`,
+                                    input : res_.input,
+                                }
+                            }
+                        ), 
+                        assignmentListParser
+                    ),
+                    (res_: combin.parserRes): combin.parserRes => {
+                        return {
+                            result: `${res_.result[0]} \n ${res_.result[1]}`,
+                            input : res_.input,
+                        }
+                    }
+                ), 
+                endParser,
+            ),
+            (res_: combin.parserRes): combin.parserRes => {
+                return {
+                    result: `${res_.result[0]} \n ${res_.result[1]}`,
+                    input : res_.input,
+                }
+            }
+        );
+
+        return resultParser.parse(str_);
     });
 
 
@@ -375,6 +411,7 @@ export {
     expressionParser,
     assignmentParser,
     assignmentListParser,
+    languageParser
 };
 
 
