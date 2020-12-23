@@ -47,7 +47,10 @@ console.log(bracket.parse('( a & b )'));
 
 console.log('\n\n');
 let exprParser = parser.expressionParser;
-console.log('HELLO THERE', exprParser.parse('((!a & b | !c | (z & b)) ^ (a & b))'));
+console.log('HELLO THERE', exprParser.parse('((!a ^ b) ^ (!a | b) ^ c)'));
+
+let assign = parser.assignmentParser;
+// console.log('ASSIGN:', assign.parse('ff := (!a & (b ^ c) ^ c);'));
 
 
 

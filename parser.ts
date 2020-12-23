@@ -170,7 +170,6 @@ let
                 combin.seqApp(varParser, identListParser),
                 (res_: combin.parserRes) => {
                     if(res_.result.length != 2) return null; //i need in normal error here
-                    console.log('varDecParserDebug:', res_);
                     return {
                         result: `${res_.result[0]} ${res_.result[1]}`,
                         input : res_.input,
@@ -192,8 +191,6 @@ let
     }),
 
     operandParser = new Parser((str_: string): combin.parserRes => {
-        console.log('oooooo', str_);
-        console.log('operand:', combin.seqAlt(identParser, constParser).parse(str_));
         return combin.seqAlt(identParser, constParser).parse(str_);
     }),
 
@@ -276,19 +273,59 @@ let
                     )
                 ),
                 (res_: combin.parserRes): combin.parserRes => {
-                    console.log('endExprParser:', res_);
                     return {
                         result: `${res_.result[0]} ${res_.result[1]}`,
                         input : res_.input,
                     }
                 } 
             );
-
+            
         return combin.seqAlt(
-            undExprParser,
-            exprParser,
+            combin.seqAlt(
+                undExprParser,
+                exprParser,
+            ),
+            unaryOperandParser
         ).parse(str_);
         
+    }),
+
+    
+    assignmentParser = new Parser((str_: string) => {
+
+        let parserResult = combin.functor(
+            combin.seqApp(
+                combin.functor(
+                    combin.seqApp(
+                        combin.functor(
+                            combin.seqApp(identParser, equalParser),
+                            (res_: combin.parserRes): combin.parserRes => {
+                                return {
+                                    result: `${res_.result[0]} ${res_.result[1]}`,
+                                    input : res_.input,
+                                }
+                            } 
+                        ),
+                        expressionParser
+                    ),
+                    (res_: combin.parserRes): combin.parserRes => {
+                        return {
+                            result: `${res_.result[0]} ${res_.result[1]}`,
+                            input : res_.input,
+                        }
+                    } 
+                ),
+                semicolonParser
+            ),
+            (res_: combin.parserRes): combin.parserRes => {
+                return {
+                    result: `${res_.result[0]} ${res_.result[1]}`,
+                    input : res_.input,
+                }
+            }
+        );
+
+        return parserResult.parse(str_);
     });
 
 
@@ -310,6 +347,7 @@ export {
 
     varDecParser,
     expressionParser,
+    assignmentParser,
 };
 
 

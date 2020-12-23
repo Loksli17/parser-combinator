@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
+exports.assignmentParser = exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 const fs = __importStar(require("fs"));
 const combin = __importStar(require("./combin"));
@@ -121,7 +121,6 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
     let parser1 = combin.functor(combin.seqApp(varParser, identListParser), (res_) => {
         if (res_.result.length != 2)
             return null; //i need in normal error here
-        console.log('varDecParserDebug:', res_);
         return {
             result: `${res_.result[0]} ${res_.result[1]}`,
             input: res_.input,
@@ -136,8 +135,6 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
     });
     return resultParser.parse(str_);
 }), operandParser = new ParseModel_1.default((str_) => {
-    console.log('oooooo', str_);
-    console.log('operand:', combin.seqAlt(identParser, constParser).parse(str_));
     return combin.seqAlt(identParser, constParser).parse(str_);
 }), unaryOperandParser = new ParseModel_1.default((str_) => {
     console.log(str_);
@@ -165,13 +162,30 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
             input: res_.input,
         };
     }), combin.seqAlt(combin.seqAlt(exprParser, expressionParser), unaryOperandParser)), (res_) => {
-        console.log('endExprParser:', res_);
         return {
             result: `${res_.result[0]} ${res_.result[1]}`,
             input: res_.input,
         };
     });
-    return combin.seqAlt(undExprParser, exprParser).parse(str_);
+    return combin.seqAlt(combin.seqAlt(undExprParser, exprParser), unaryOperandParser).parse(str_);
+}), assignmentParser = new ParseModel_1.default((str_) => {
+    let parserResult = combin.functor(combin.seqApp(combin.functor(combin.seqApp(combin.functor(combin.seqApp(identParser, equalParser), (res_) => {
+        return {
+            result: `${res_.result[0]} ${res_.result[1]}`,
+            input: res_.input,
+        };
+    }), expressionParser), (res_) => {
+        return {
+            result: `${res_.result[0]} ${res_.result[1]}`,
+            input: res_.input,
+        };
+    }), semicolonParser), (res_) => {
+        return {
+            result: `${res_.result[0]} ${res_.result[1]}`,
+            input: res_.input,
+        };
+    });
+    return parserResult.parse(str_);
 });
 exports.varParser = varParser;
 exports.equalParser = equalParser;
@@ -185,6 +199,7 @@ exports.identListParser = identListParser;
 exports.varDecParser = varDecParser;
 exports.operandParser = operandParser;
 exports.expressionParser = expressionParser;
+exports.assignmentParser = assignmentParser;
 // console.log(stringToTerminal(/(var)/ig,                           TypeStatus.keyword).parse(fileData));
 // console.log(stringToTerminal(/([\(\),;]|begin|end)/ig,            TypeStatus.separator).parse(fileData));
 // console.log(stringToTerminal(/[01]/ig,                            TypeStatus.const).parse(fileData));
