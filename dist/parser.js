@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assignmentParser = exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
+exports.assignmentListParser = exports.assignmentParser = exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 const fs = __importStar(require("fs"));
 const combin = __importStar(require("./combin"));
@@ -186,6 +186,20 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
         };
     });
     return parserResult.parse(str_);
+}), assignmentListParser = new ParseModel_1.default((str_) => {
+    let listParser = combin.functor(combin.oneOrMany(assignmentParser), (res_) => {
+        //проверка на null
+        let valueLanguage = '';
+        for (let i = 0; i < res_.result.length; i++) {
+            valueLanguage += res_.result[i] + '\n';
+        }
+        return {
+            result: valueLanguage,
+            input: res_.input,
+        };
+    });
+    console.log(listParser.parse(str_));
+    return listParser.parse(str_);
 });
 exports.varParser = varParser;
 exports.equalParser = equalParser;
@@ -200,6 +214,7 @@ exports.varDecParser = varDecParser;
 exports.operandParser = operandParser;
 exports.expressionParser = expressionParser;
 exports.assignmentParser = assignmentParser;
+exports.assignmentListParser = assignmentListParser;
 // console.log(stringToTerminal(/(var)/ig,                           TypeStatus.keyword).parse(fileData));
 // console.log(stringToTerminal(/([\(\),;]|begin|end)/ig,            TypeStatus.separator).parse(fileData));
 // console.log(stringToTerminal(/[01]/ig,                            TypeStatus.const).parse(fileData));

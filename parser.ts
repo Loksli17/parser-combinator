@@ -326,6 +326,32 @@ let
         );
 
         return parserResult.parse(str_);
+    }),
+
+    assignmentListParser = new Parser((str_: string) => {
+
+        let listParser: Parser = combin.functor(
+            combin.oneOrMany(assignmentParser),
+            (res_: combin.parserRes) => {
+
+                //проверка на null
+                let valueLanguage: string = '';
+
+                for(let i = 0; i < res_.result.length; i++){
+                    valueLanguage += res_.result[i] + '\n';
+                }
+
+                return {
+                    result: valueLanguage,
+                    input : res_.input,
+                }
+            }
+        );
+
+        console.log(listParser.parse(str_));
+
+        return listParser.parse(str_);
+
     });
 
 
@@ -348,6 +374,7 @@ export {
     varDecParser,
     expressionParser,
     assignmentParser,
+    assignmentListParser,
 };
 
 

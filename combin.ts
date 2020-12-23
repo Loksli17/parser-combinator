@@ -129,6 +129,7 @@ let
                 resA     : parserRes | null  = a_.parse(str_),
                 res      : Array<any>        = [];
 
+            console.log('oneOrMany:', resA)
             if(resA == null) return null;
             
             res.push(resA.result);

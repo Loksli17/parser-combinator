@@ -99,6 +99,7 @@ seqAppR = (a_, b_) => {
 }, oneOrMany = (a_) => {
     return new ParseModel_1.default((str_) => {
         let tempInput = '', resA = a_.parse(str_), res = [];
+        console.log('oneOrMany:', resA);
         if (resA == null)
             return null;
         res.push(resA.result);
