@@ -223,13 +223,43 @@ let
     }),
 
     
-    underExpressionParser = new Parser((str_: string): combin.parserRes => {
+    expressionParser = new Parser((str_: string): combin.parserRes => {
  
         let
+            exprParser = combin.functor(
+                combin.seqAppL(
+                    combin.functor(
+                        combin.seqAppR(
+                            combin.genTerm(/^\(/ig),
+                            expressionParser,
+                        ),
+                        (res_: combin.parserRes): combin.parserRes => {
+                            return {
+                                result: `(${res_.result}`,
+                                input : res_.input,
+                            }
+                        }
+                    ), 
+                    combin.genTerm(/^\)/ig)
+                ),
+                (res_: combin.parserRes): combin.parserRes => {
+                    return {
+                        result: `${res_.result})`,
+                        input : res_.input,
+                    }
+                } 
+            ),
+
             undExprParser = combin.functor(
                 combin.seqApp(
                     combin.functor(
-                        combin.seqApp(unaryOperandParser, binaryParser),
+                        combin.seqApp(
+                            combin.seqAlt(
+                                exprParser,
+                                unaryOperandParser 
+                            ),
+                            binaryParser
+                        ),
                         (res_: combin.parserRes): combin.parserRes => {
                             return {
                                 result: `${res_.result[0]} ${res_.result[1]}`,
@@ -238,72 +268,29 @@ let
                         }
                     ),
                     combin.seqAlt(
-                        underExpressionParser,
+                        combin.seqAlt(
+                            exprParser,
+                            expressionParser
+                        ),
                         unaryOperandParser
                     )
                 ),
                 (res_: combin.parserRes): combin.parserRes => {
+                    console.log('endExprParser:', res_);
                     return {
                         result: `${res_.result[0]} ${res_.result[1]}`,
                         input : res_.input,
                     }
                 } 
-            );        
+            );
 
-        return undExprParser.parse(str_);
-    }),
-
-
-    expressionParser = new Parser((str_: string) => {
-
-        let exprParser = combin.functor(
-            combin.seqApp(
-                combin.functor(
-                    combin.seqApp(
-                        combin.functor(
-                            combin.seqAppL(
-                                combin.functor(
-                                    combin.seqAppR(combin.genTerm(/^\(/ig), underExpressionParser),
-                                    (res_: combin.parserRes): combin.parserRes => {
-                                        return {
-                                            result: `(${res_.result}`,
-                                            input : res_.input,
-                                        }
-                                    }
-                                ),
-                                combin.genTerm(/^\)/ig),
-                            ),
-                            (res_: combin.parserRes): combin.parserRes => {
-                                return {
-                                    result: `${res_.result})`,
-                                    input : res_.input,
-                                }
-                            }
-                        ),
-                        binaryParser,
-                    ),
-                    (res_: combin.parserRes): combin.parserRes => {
-                        return {
-                            result: `${res_.result})`,
-                            input : res_.input,
-                        }
-                    }
-                ),
-                combin.seqAlt(
-                    expressionParser, 
-                    underExpressionParser
-                )
-            ),
-            (res_: combin.parserRes): combin.parserRes => {
-                return {
-                    result: `${res_.result[0]} ${res_.result[1]}`,
-                    input : res_.input,
-                }
-            }
-        );
-
-        return exprParser.parse(str_);
+        return combin.seqAlt(
+            undExprParser,
+            exprParser,
+        ).parse(str_);
+        
     });
+
 
 export {
     varParser,
@@ -322,7 +309,6 @@ export {
     operandParser,
 
     varDecParser,
-    underExpressionParser,
     expressionParser,
 };
 

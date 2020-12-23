@@ -46,7 +46,6 @@ console.log('varDecTest:', varDecParser.parse('vAr aSD, g:')); //output null
 let bracket = combin.genTerm(/^\(/ig);
 console.log(bracket.parse('( a & b )'));
 console.log('\n\n');
-let undExprParser = parser.underExpressionParser;
-console.log('HELLO THERE', undExprParser.parse('!a ^ b | a & 0'));
-let exprParser = parser.expressionParser;
-console.log('SPACE GENERAL', exprParser.parse('(!a ^ b ^ c) ^ (!a ^ b ^ c)'));
+let undExprParser = parser.expressionParser;
+console.log('HELLO THERE', undExprParser.parse('((!a & b | !c | (z & b)) ^ (a & b))'));
+// console.log('SPACE GENERAL', parser.expressionParser.parse('(!a ^ b)'));
