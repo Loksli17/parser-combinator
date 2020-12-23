@@ -181,7 +181,7 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
         };
     }), semicolonParser), (res_) => {
         return {
-            result: `${res_.result[0]} ${res_.result[1]}`,
+            result: `${res_.result[0]}${res_.result[1]}`,
             input: res_.input,
         };
     });

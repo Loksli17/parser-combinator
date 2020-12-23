@@ -285,7 +285,7 @@ let
                 undExprParser,
                 exprParser,
             ),
-            unaryOperandParser
+            unaryOperandParser,
         ).parse(str_);
         
     }),
@@ -319,7 +319,7 @@ let
             ),
             (res_: combin.parserRes): combin.parserRes => {
                 return {
-                    result: `${res_.result[0]} ${res_.result[1]}`,
+                    result: `${res_.result[0]}${res_.result[1]}`,
                     input : res_.input,
                 }
             }
