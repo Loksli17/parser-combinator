@@ -2,7 +2,8 @@ import * as fs     from 'fs';
 import * as combin from './combin';
 import * as parser from './parser';
 
-let fileData = fs.readFileSync('data.txt','utf-8');
+let fileData: string = fs.readFileSync('data.txt','utf-8');
+fs.writeFileSync('output.txt', parser.languageParser.parse(fileData).result)
 
 // console.log('logical parser: ', parser.logicalParser.parse(':  logical ; a = a ^ (a | a) & 1'));
 // console.log('var parser: ', parser.varParser.parse(' vAr y, sdf, a: logical;'));

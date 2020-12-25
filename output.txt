@@ -1,0 +1,6 @@
+Var x, yx, jr, kek, yanemogy, zy: Boolean; 
+ Begin 
+ 	z = (y .OR. (y .AND. x));
+	z = y .AND. z .OR. .NOT. z .XOR. 1;
+	y = .NOT. 1; 
+ End
