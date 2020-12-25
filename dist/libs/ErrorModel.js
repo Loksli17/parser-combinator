@@ -7,7 +7,7 @@ class ErrorModel {
         this.input = input_;
     }
     callError(fullText) {
-        console.error(`Error: ${this.message} before:\n ${fullText.replace(this.input, '')}`);
+        console.error(`Error: ${this.message} after:\n ${fullText.replace(this.input, '')}`);
         process.exit(0);
     }
 }
