@@ -10,7 +10,7 @@ class ErrorModel{
     }
 
     public callError(fullText: string): void{
-        console.log(`Error: ${this.message} before ${fullText.replace(this.input, '')}`);
+        console.error(`Error: ${this.message} before:\n ${fullText.replace(this.input, '')}`);
         process.exit(0);
     }
 

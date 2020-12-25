@@ -79,7 +79,7 @@ let
 
     beginParserErr = combin.monadBind(beginParser, (res_: string): Parser => {
         return new Parser((input_: string): combin.parserRes | Error => {
-            return res_ == null ? new Error('unexpected symbol, expected var', 'var', input_) : {result: res_, input: input_};
+            return res_ == null ? new Error('unexpected symbol, expected begin', 'begin', input_) : {result: res_, input: input_};
         });
     }),
 
@@ -195,7 +195,7 @@ let
         
         let result = resultParser.parse(str_);
         if (result instanceof Error) result.callError(str_);
-        return result
+        return result;
     }),
 
     operandParser = new Parser((str_: string): combin.parserRes => {
@@ -367,7 +367,8 @@ let
                     combin.seqApp(
                         combin.functor(
                             combin.seqApp(varDecParser, beginParserErr),
-                            (res_: combin.parserRes): combin.parserRes => {
+                            (res_: combin.parserRes): combin.parserRes | Error => {
+                                if(res_ instanceof Error) return res_;
                                 return {
                                     result: `${res_.result[0]} \n ${res_.result[1]}`,
                                     input : res_.input,
@@ -376,7 +377,8 @@ let
                         ), 
                         assignmentListParser
                     ),
-                    (res_: combin.parserRes): combin.parserRes => {
+                    (res_: combin.parserRes): combin.parserRes | Error => {
+                        if(res_ instanceof Error) return res_;
                         return {
                             result: `${res_.result[0]} \n ${res_.result[1]}`,
                             input : res_.input,
@@ -385,7 +387,8 @@ let
                 ), 
                 endParser,
             ),
-            (res_: combin.parserRes): combin.parserRes => {
+            (res_: combin.parserRes): combin.parserRes | Error => {
+                if(res_ instanceof Error) return res_;
                 return {
                     result: `${res_.result[0]} \n ${res_.result[1]}`,
                     input : res_.input,
@@ -393,7 +396,9 @@ let
             }
         );
 
-        return resultParser.parse(str_);
+        let result = resultParser.parse(str_);
+        if (result instanceof Error) result.callError(str_);
+        return result;
     });
 
 

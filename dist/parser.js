@@ -38,16 +38,22 @@ let varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_) => {
         return res_ == null ? new ErrorModel_1.default('unexpected symbol, expected var', 'var', input_) : { result: res_, input: input_ };
     });
 }), equalParser = combin.functor(combin.genTerm(/^:=/ig), (res_) => {
+    if (res_ == null)
+        return null;
     return {
         result: '=',
         input: res_.input,
     };
 }), unaryParser = combin.functor(combin.genTerm(/^!/ig), (res_) => {
+    if (res_ == null)
+        return null;
     return {
         result: '.NOT.',
         input: res_.input,
     };
 }), binaryParser = combin.functor(combin.genTerm(/^[\|\^\&]/ig), (res_) => {
+    if (res_ == null)
+        return null;
     let result = '';
     switch (res_.result) {
         case '|':
@@ -66,18 +72,20 @@ let varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_) => {
     };
 }), 
 //накинуть сверху вывод ошибки
-identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig), (res_) => {
-    return res_;
-}), commaParser = combin.genTerm(/^,/ig), colonParser = combin.genTerm(/^:/ig), semicolonParser = combin.genTerm(/^;/ig), constParser = combin.genTerm(/^[10]/ig), beginParser = combin.functor(combin.genTerm(/^begin/ig), (res_) => {
+identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig), commaParser = combin.genTerm(/^,/ig), colonParser = combin.genTerm(/^:/ig), semicolonParser = combin.genTerm(/^;/ig), constParser = combin.genTerm(/^[10]/ig), beginParser = combin.functor(combin.genTerm(/^begin/ig), (res_) => {
+    if (res_ == null)
+        return null;
     return {
         result: 'Begin',
         input: res_.input,
     };
 }), beginParserErr = combin.monadBind(beginParser, (res_) => {
     return new ParseModel_1.default((input_) => {
-        return res_ == null ? new ErrorModel_1.default('unexpected symbol, expected var', 'var', input_) : { result: res_, input: input_ };
+        return res_ == null ? new ErrorModel_1.default('unexpected symbol, expected begin', 'begin', input_) : { result: res_, input: input_ };
     });
 }), endParser = combin.functor(combin.genTerm(/^end/ig), (res_) => {
+    if (res_ == null)
+        return null;
     return {
         result: 'End',
         input: res_.input,
@@ -215,22 +223,31 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
     return listParser.parse(str_);
 }), languageParser = new ParseModel_1.default((str_) => {
     let resultParser = combin.functor(combin.seqApp(combin.functor(combin.seqApp(combin.functor(combin.seqApp(varDecParser, beginParserErr), (res_) => {
+        if (res_ instanceof ErrorModel_1.default)
+            return res_;
         return {
             result: `${res_.result[0]} \n ${res_.result[1]}`,
             input: res_.input,
         };
     }), assignmentListParser), (res_) => {
+        if (res_ instanceof ErrorModel_1.default)
+            return res_;
         return {
             result: `${res_.result[0]} \n ${res_.result[1]}`,
             input: res_.input,
         };
     }), endParser), (res_) => {
+        if (res_ instanceof ErrorModel_1.default)
+            return res_;
         return {
             result: `${res_.result[0]} \n ${res_.result[1]}`,
             input: res_.input,
         };
     });
-    return resultParser.parse(str_);
+    let result = resultParser.parse(str_);
+    if (result instanceof ErrorModel_1.default)
+        result.callError(str_);
+    return result;
 });
 exports.varParser = varParser;
 exports.equalParser = equalParser;
