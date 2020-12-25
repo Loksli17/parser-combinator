@@ -18,14 +18,16 @@ let
         });
     }),
 
-    equalParser = combin.functor(combin.genTerm(/^:=/ig), (res_: combin.parserRes): combin.parserRes => {
+    equalParser = combin.functor(combin.genTerm(/^:=/ig), (res_: combin.parserRes): combin.parserRes | null => {
+        if(res_ == null) return null;
         return {
             result: '=',
             input : res_.input,
         };
     }),
 
-    unaryParser = combin.functor(combin.genTerm(/^!/ig), (res_: combin.parserRes) => {
+    unaryParser = combin.functor(combin.genTerm(/^!/ig), (res_: combin.parserRes): combin.parserRes | null => {
+        if(res_ == null) return null;
         return {
             result: '.NOT.',
             input : res_.input,
@@ -33,6 +35,8 @@ let
     }),
 
     binaryParser = combin.functor(combin.genTerm(/^[\|\^\&]/ig), (res_: combin.parserRes) => {
+
+        if(res_ == null) return null;
         
         let result: string = '';
 
@@ -55,12 +59,7 @@ let
     }),
 
     //накинуть сверху вывод ошибки
-    identParser = combin.functor(
-        combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig),
-        (res_: string) => {
-            return res_;
-        }
-    ),
+    identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig),
 
     commaParser = combin.genTerm(/^,/ig),
 
@@ -71,6 +70,7 @@ let
     constParser = combin.genTerm(/^[10]/ig),
 
     beginParser = combin.functor(combin.genTerm(/^begin/ig), (res_: combin.parserRes) => {
+        if(res_ == null) return null;
         return {
             result: 'Begin',
             input : res_.input,
@@ -84,6 +84,7 @@ let
     }),
 
     endParser = combin.functor(combin.genTerm(/^end/ig),  (res_: combin.parserRes) => {
+        if(res_ == null) return null;
         return {
             result: 'End',
             input : res_.input,
