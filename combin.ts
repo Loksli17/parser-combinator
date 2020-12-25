@@ -52,7 +52,7 @@ let
     functor = (a_: Parser, f_: Function): Parser => {
         return new Parser((str_: string) => {
             let res = a_.parse(str_);
-            if(res == null) return null
+            if(res == null) return null;
             return f_(res);
         })
     },

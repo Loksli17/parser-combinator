@@ -1,6 +1,7 @@
-Var x, yx, jr, kek, yanemogy, zy: Boolean; 
+Var zy, z, x: Boolean; 
  Begin 
- 	z = (y .OR. (y .AND. x));
-	z = y .AND. z .OR. .NOT. z .XOR. 1;
-	y = .NOT. 1; 
+ 	zy = zy .XOR. 1 .OR. 0;
+	zy = (1 .XOR. (z .OR. x)); 
  End
+
+ 

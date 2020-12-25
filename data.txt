@@ -1,7 +1,9 @@
 var 
-    x, yx, jr, kek, yanemogy, zy: logical;
-begin 
-    z := (y | (y & x)); 
-    z := y & z | !z ^ 1; 
-    y := !1; 
+    zy, z, x: logical;
+ 
+    zy := zy ^ 1 | 0;
+    zy := (1 ^ (z | x)); 
 end
+
+
+
