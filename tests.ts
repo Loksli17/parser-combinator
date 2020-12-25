@@ -1,6 +1,3 @@
-import TypeStatus  from './libs/typeStatus';
-import * as fs     from 'fs';
-import Parser      from './libs/ParseModel';
 import * as combin from './combin';
 import * as parser from './parser';
 

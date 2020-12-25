@@ -21,7 +21,8 @@ genTerm = (reg_) => {
 //парсер который будет возвращать ошибку
 error = (message_) => {
     return new ParseModel_1.default((a) => {
-        throw new Error(message_);
+        console.error(message_);
+        process.exit(0);
     });
 }, 
 //_>> @return Parser: [Parser A, function] -> new Parser 
@@ -46,14 +47,9 @@ functor = (a_, f_) => {
 //<|>
 seqAlt = (a_, b_) => {
     return new ParseModel_1.default((str_) => {
-        // console.log('seqAlt string:', str_);
         let resA = a_.parse(str_);
-        // console.log('seqAlt resA:', resA);
         if (resA == null) {
-            // console.log('seqAltSTr B parser', str_);
-            // console.log('wooooork', b_.parse(str_));
             let resB = b_.parse(str_);
-            // console.log('seqAlt resB:', resB);
             return resB == null ? null : resB;
         }
         ;
@@ -67,7 +63,6 @@ seqApp = (a_, b_) => {
         if (resA == null)
             return null;
         let resB = b_.parse(resA.input);
-        console.log('seqApp', resA, resB);
         if (resB == null)
             return null;
         return {

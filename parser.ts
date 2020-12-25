@@ -1,24 +1,19 @@
-import TypeStatus  from './libs/typeStatus';
-import Lexem       from './libs/lexem';
 import Parser      from './libs/ParseModel';
-import * as fs     from 'fs';
 import * as combin from './combin';
-import { spawn } from 'child_process';
 
-let
-    result  : string,
-    fileData: string = fs.readFileSync('data.txt', 'utf-8');
-
-//подумать про ошибки в каждом из парсеров!!!!!!!!!!!!!!!!!!
-//seq удалить проверку на длину массива
 
 let 
-    varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_: combin.parserRes): combin.parserRes => {
+    varParser1 = combin.functor(combin.genTerm(/^var\s+/ig), (res_: combin.parserRes): combin.parserRes => {
         return {
             result: 'Var',
             input : res_.input,
         };
     }),
+
+    varParser = combin.seqAlt(
+        varParser1,
+        combin.error('error with keyWord parse'),
+    ),
 
     equalParser = combin.functor(combin.genTerm(/^:=/ig), (res_: combin.parserRes): combin.parserRes => {
         return {
@@ -195,8 +190,6 @@ let
     }),
 
     unaryOperandParser = new Parser((str_: string): combin.parserRes => {
-
-        console.log(str_);
 
         let
             unrOperParser = combin.functor(

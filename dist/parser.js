@@ -24,17 +24,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.languageParser = exports.assignmentListParser = exports.assignmentParser = exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
-const fs = __importStar(require("fs"));
 const combin = __importStar(require("./combin"));
-let result, fileData = fs.readFileSync('data.txt', 'utf-8');
-//подумать про ошибки в каждом из парсеров!!!!!!!!!!!!!!!!!!
-//seq удалить проверку на длину массива
-let varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_) => {
+let varParser1 = combin.functor(combin.genTerm(/^var\s+/ig), (res_) => {
     return {
         result: 'Var',
         input: res_.input,
     };
-}), equalParser = combin.functor(combin.genTerm(/^:=/ig), (res_) => {
+}), varParser = combin.seqAlt(varParser1, combin.error('error with keyWord parse')), equalParser = combin.functor(combin.genTerm(/^:=/ig), (res_) => {
     return {
         result: '=',
         input: res_.input,
@@ -137,7 +133,6 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
 }), operandParser = new ParseModel_1.default((str_) => {
     return combin.seqAlt(identParser, constParser).parse(str_);
 }), unaryOperandParser = new ParseModel_1.default((str_) => {
-    console.log(str_);
     let unrOperParser = combin.functor(combin.seqApp(unaryParser, operandParser), (res_) => {
         return {
             result: `${res_.result[0]} ${res_.result[1]}`,

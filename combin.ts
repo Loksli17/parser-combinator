@@ -1,7 +1,4 @@
-import TypeStatus from './libs/typeStatus';
-import Lexem      from './libs/lexem';
-import Parser     from './libs/ParseModel';
-import * as fs    from 'fs';
+import Parser from './libs/ParseModel';
 
 
 interface parserRes{
@@ -42,7 +39,8 @@ let
     //парсер который будет возвращать ошибку
     error = (message_: string): Parser => {
         return new Parser((a: any) => {
-            throw new Error(message_);
+            console.error(message_);
+            process.exit(0);
         });
     },
 
@@ -68,17 +66,11 @@ let
     //<|>
     seqAlt = (a_: Parser, b_: Parser): Parser => {
         return new Parser((str_: string): Array<genTermRes> | null => {
-            // console.log('seqAlt string:', str_);
             let resA = a_.parse(str_);
-            // console.log('seqAlt resA:', resA);
             if(resA == null){
-                // console.log('seqAltSTr B parser', str_);
-                // console.log('wooooork', b_.parse(str_));
                 let resB = b_.parse(str_);
-                // console.log('seqAlt resB:', resB);
                 return resB == null ? null : resB;
             };
-
             return resA;
         });
     },
@@ -89,7 +81,6 @@ let
             let resA = a_.parse(str_);
             if(resA == null) return null;
             let resB = b_.parse(resA.input);
-            console.log('seqApp', resA, resB);
             if(resB == null) return null;
             return {
                 result: [
