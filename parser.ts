@@ -3,15 +3,15 @@ import * as combin from './combin';
 
 
 let 
-    varParser1 = combin.functor(combin.genTerm(/^var\s+/ig), (res_: combin.parserRes): combin.parserRes => {
+    varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_: combin.parserRes): combin.parserRes => {
         return {
             result: 'Var',
             input : res_.input,
         };
     }),
 
-    varParser = combin.seqAlt(
-        varParser1,
+    varParserErr = combin.seqAlt(
+        varParser,
         combin.error('error with keyWord parse'),
     ),
 
