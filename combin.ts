@@ -1,3 +1,4 @@
+import Error  from './libs/ErrorModel';
 import Parser from './libs/ParseModel';
 
 
@@ -36,19 +37,12 @@ let
         });
     },
 
-    //парсер который будет возвращать ошибку
-    error = (message_: string): Parser => {
-        return new Parser((a: any) => {
-            console.error(message_);
-            process.exit(0);
-        });
-    },
 
     //_>> @return Parser: [Parser A, function] -> new Parser 
     monadBind = (a_: Parser, f_: Function): Parser => {
         return new Parser((input: string): genTermRes | null => {
             let res = a_.parse(input);
-            if(res == null) return null;
+            if(res == null) return f_(null).parse(input);
             let newParser = f_(res.result); //return parser
             return newParser.parse(res.input); 
         });
@@ -77,11 +71,16 @@ let
 
     //<*> @return Parser: [parser A, Parser B] -> func
     seqApp = (a_: Parser, b_: Parser): Parser => {
-        return new Parser((str_: string): seqAppRes | null => {
+        return new Parser((str_: string): seqAppRes | null | Error => {
+            
             let resA = a_.parse(str_);
             if(resA == null) return null;
+            if(resA instanceof Error) return new Error(resA.message, resA.term, resA.input);
+
             let resB = b_.parse(resA.input);
             if(resB == null) return null;
+            if(resB instanceof Error) return new Error(resB.message, resB.term, resB.input);
+
             return {
                 result: [
                     resA.result,
@@ -120,7 +119,6 @@ let
                 resA     : parserRes | null  = a_.parse(str_),
                 res      : Array<any>        = [];
 
-            console.log('oneOrMany:', resA)
             if(resA == null) return null;
             
             res.push(resA.result);
@@ -149,7 +147,6 @@ export {
     manyRes,
 
     genTerm, 
-    error, 
     
     monadBind,
     functor,

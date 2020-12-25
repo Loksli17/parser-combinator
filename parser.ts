@@ -1,19 +1,22 @@
 import Parser      from './libs/ParseModel';
+import Error       from './libs/ErrorModel';
 import * as combin from './combin';
 
 
 let 
-    varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_: combin.parserRes): combin.parserRes => {
+    varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_: combin.parserRes): combin.parserRes | null => {
+        if(res_ == null) return null;
         return {
             result: 'Var',
             input : res_.input,
         };
     }),
 
-    varParserErr = combin.seqAlt(
-        varParser,
-        combin.error('error with keyWord parse'),
-    ),
+    varParserErr = combin.monadBind(varParser, (res_: string): Parser => {
+        return new Parser((input_: string): combin.parserRes | Error => {
+            return res_ == null ? new Error('unexpected symbol, expected var', 'var', input_) : {result: res_, input: input_};
+        });
+    }),
 
     equalParser = combin.functor(combin.genTerm(/^:=/ig), (res_: combin.parserRes): combin.parserRes => {
         return {
@@ -55,7 +58,6 @@ let
     identParser = combin.functor(
         combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig),
         (res_: string) => {
-            console.log('ident:', res_);
             return res_;
         }
     ),
@@ -73,6 +75,12 @@ let
             result: 'Begin',
             input : res_.input,
         };
+    }),
+
+    beginParserErr = combin.monadBind(beginParser, (res_: string): Parser => {
+        return new Parser((input_: string): combin.parserRes | Error => {
+            return res_ == null ? new Error('unexpected symbol, expected var', 'var', input_) : {result: res_, input: input_};
+        });
     }),
 
     endParser = combin.functor(combin.genTerm(/^end/ig),  (res_: combin.parserRes) => {
@@ -162,9 +170,10 @@ let
         
         let 
             parser1 = combin.functor(
-                combin.seqApp(varParser, identListParser),
+                combin.seqApp(varParserErr, identListParser),
                 (res_: combin.parserRes) => {
-                    if(res_.result.length != 2) return null; //i need in normal error here
+                    if(res_ instanceof Error) return res_;
+                    if(res_.result.length != 2) return null;
                     return {
                         result: `${res_.result[0]} ${res_.result[1]}`,
                         input : res_.input,
@@ -174,7 +183,8 @@ let
             resultParser = combin.functor(
                 combin.seqApp(parser1, logicalParser),
                 (res_: combin.parserRes) => {
-                    if(res_.result.length != 2) return null; //i need in normal error here
+                    if(res_ instanceof Error) return res_;
+                    if(res_.result.length != 2) return null;
                     return {
                         result: `${res_.result[0]} ${res_.result[1]}`,
                         input : res_.input,
@@ -182,7 +192,9 @@ let
                 },
             );
         
-        return resultParser.parse(str_);
+        let result = resultParser.parse(str_);
+        if (result instanceof Error) result.callError(str_);
+        return result
     }),
 
     operandParser = new Parser((str_: string): combin.parserRes => {
@@ -353,7 +365,7 @@ let
                 combin.functor(
                     combin.seqApp(
                         combin.functor(
-                            combin.seqApp(varDecParser, beginParser),
+                            combin.seqApp(varDecParser, beginParserErr),
                             (res_: combin.parserRes): combin.parserRes => {
                                 return {
                                     result: `${res_.result[0]} \n ${res_.result[1]}`,

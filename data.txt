@@ -1,4 +1,4 @@
-
+var 
     x, yx, jr, kek, yanemogy, zy: logical;
 begin 
     z := (y | (y & x)); 

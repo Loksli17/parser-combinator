@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.oneOrMany = exports.seqAppR = exports.seqAppL = exports.seqApp = exports.seqAlt = exports.functor = exports.monadBind = exports.error = exports.genTerm = void 0;
+exports.oneOrMany = exports.seqAppR = exports.seqAppL = exports.seqApp = exports.seqAlt = exports.functor = exports.monadBind = exports.genTerm = void 0;
+const ErrorModel_1 = __importDefault(require("./libs/ErrorModel"));
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 let 
 //@return Parser: string -> [term, other string]
@@ -18,19 +19,12 @@ genTerm = (reg_) => {
         };
     });
 }, 
-//парсер который будет возвращать ошибку
-error = (message_) => {
-    return new ParseModel_1.default((a) => {
-        console.error(message_);
-        process.exit(0);
-    });
-}, 
 //_>> @return Parser: [Parser A, function] -> new Parser 
 monadBind = (a_, f_) => {
     return new ParseModel_1.default((input) => {
         let res = a_.parse(input);
         if (res == null)
-            return null;
+            return f_(null).parse(input);
         let newParser = f_(res.result); //return parser
         return newParser.parse(res.input);
     });
@@ -62,9 +56,13 @@ seqApp = (a_, b_) => {
         let resA = a_.parse(str_);
         if (resA == null)
             return null;
+        if (resA instanceof ErrorModel_1.default)
+            return new ErrorModel_1.default(resA.message, resA.term, resA.input);
         let resB = b_.parse(resA.input);
         if (resB == null)
             return null;
+        if (resB instanceof ErrorModel_1.default)
+            return new ErrorModel_1.default(resB.message, resB.term, resB.input);
         return {
             result: [
                 resA.result,
@@ -94,7 +92,6 @@ seqAppR = (a_, b_) => {
 }, oneOrMany = (a_) => {
     return new ParseModel_1.default((str_) => {
         let tempInput = '', resA = a_.parse(str_), res = [];
-        console.log('oneOrMany:', resA);
         if (resA == null)
             return null;
         res.push(resA.result);
@@ -113,7 +110,6 @@ seqAppR = (a_, b_) => {
     });
 };
 exports.genTerm = genTerm;
-exports.error = error;
 exports.monadBind = monadBind;
 exports.functor = functor;
 exports.seqAlt = seqAlt;

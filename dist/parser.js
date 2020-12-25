@@ -24,13 +24,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.languageParser = exports.assignmentListParser = exports.assignmentParser = exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
+const ErrorModel_1 = __importDefault(require("./libs/ErrorModel"));
 const combin = __importStar(require("./combin"));
-let varParser1 = combin.functor(combin.genTerm(/^var\s+/ig), (res_) => {
+let varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_) => {
+    if (res_ == null)
+        return null;
     return {
         result: 'Var',
         input: res_.input,
     };
-}), varParser = combin.seqAlt(varParser1, combin.error('error with keyWord parse')), equalParser = combin.functor(combin.genTerm(/^:=/ig), (res_) => {
+}), varParserErr = combin.monadBind(varParser, (res_) => {
+    return new ParseModel_1.default((input_) => {
+        return res_ == null ? new ErrorModel_1.default('unexpected symbol, expected var', 'var', input_) : { result: res_, input: input_ };
+    });
+}), equalParser = combin.functor(combin.genTerm(/^:=/ig), (res_) => {
     return {
         result: '=',
         input: res_.input,
@@ -60,13 +67,16 @@ let varParser1 = combin.functor(combin.genTerm(/^var\s+/ig), (res_) => {
 }), 
 //накинуть сверху вывод ошибки
 identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig), (res_) => {
-    console.log('ident:', res_);
     return res_;
 }), commaParser = combin.genTerm(/^,/ig), colonParser = combin.genTerm(/^:/ig), semicolonParser = combin.genTerm(/^;/ig), constParser = combin.genTerm(/^[10]/ig), beginParser = combin.functor(combin.genTerm(/^begin/ig), (res_) => {
     return {
         result: 'Begin',
         input: res_.input,
     };
+}), beginParserErr = combin.monadBind(beginParser, (res_) => {
+    return new ParseModel_1.default((input_) => {
+        return res_ == null ? new ErrorModel_1.default('unexpected symbol, expected var', 'var', input_) : { result: res_, input: input_ };
+    });
 }), endParser = combin.functor(combin.genTerm(/^end/ig), (res_) => {
     return {
         result: 'End',
@@ -114,22 +124,29 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
     }), resultParser = combin.seqAlt(identColonParser, listIdentCommaColonParser);
     return resultParser.parse(str_);
 }), varDecParser = new ParseModel_1.default((str_) => {
-    let parser1 = combin.functor(combin.seqApp(varParser, identListParser), (res_) => {
+    let parser1 = combin.functor(combin.seqApp(varParserErr, identListParser), (res_) => {
+        if (res_ instanceof ErrorModel_1.default)
+            return res_;
         if (res_.result.length != 2)
-            return null; //i need in normal error here
+            return null;
         return {
             result: `${res_.result[0]} ${res_.result[1]}`,
             input: res_.input,
         };
     }), resultParser = combin.functor(combin.seqApp(parser1, logicalParser), (res_) => {
+        if (res_ instanceof ErrorModel_1.default)
+            return res_;
         if (res_.result.length != 2)
-            return null; //i need in normal error here
+            return null;
         return {
             result: `${res_.result[0]} ${res_.result[1]}`,
             input: res_.input,
         };
     });
-    return resultParser.parse(str_);
+    let result = resultParser.parse(str_);
+    if (result instanceof ErrorModel_1.default)
+        result.callError(str_);
+    return result;
 }), operandParser = new ParseModel_1.default((str_) => {
     return combin.seqAlt(identParser, constParser).parse(str_);
 }), unaryOperandParser = new ParseModel_1.default((str_) => {
@@ -197,7 +214,7 @@ identParser = combin.functor(combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig
     });
     return listParser.parse(str_);
 }), languageParser = new ParseModel_1.default((str_) => {
-    let resultParser = combin.functor(combin.seqApp(combin.functor(combin.seqApp(combin.functor(combin.seqApp(varDecParser, beginParser), (res_) => {
+    let resultParser = combin.functor(combin.seqApp(combin.functor(combin.seqApp(combin.functor(combin.seqApp(varDecParser, beginParserErr), (res_) => {
         return {
             result: `${res_.result[0]} \n ${res_.result[1]}`,
             input: res_.input,

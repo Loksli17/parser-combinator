@@ -22,4 +22,5 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs = __importStar(require("fs"));
 const parser = __importStar(require("./parser"));
 let fileData = fs.readFileSync('data.txt', 'utf-8');
+console.log('code was compiled successfully');
 fs.writeFileSync('output.txt', parser.languageParser.parse(fileData).result);
