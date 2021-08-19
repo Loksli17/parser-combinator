@@ -1,6 +1,7 @@
 import * as combin from './combin';
 import * as parser from './parser';
 
+/*
 //error test
 let testError = parser.identParser.parse('asd, sdf, sdf, df');
 console.log(testError);
@@ -54,12 +55,4 @@ let seqAppR = combin.seqAppR(parserIdent, parserComma);
 
 let parser1 = parser.languageParser;
 console.log(parser1.parse('var a: logical; begin a := 0 ^ a; a := 1; end').result);
-
-
-
-
-
-    
-
-
-
+*/
