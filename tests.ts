@@ -1,3 +1,4 @@
+
 import * as combin from './combin';
 import * as parser from './parser';
 
@@ -11,8 +12,8 @@ let
     parserComma      = combin.genTerm(/^,/ig),
     parserIdent      = combin.genTerm(/^[a-z]+/ig);
 
-// console.log(parserIdentComma.parse('asdsad, asdasd, asd, asd:'));
-// console.log(parser.binaryParser.parse(' | dsf'));
+console.log(parserIdentComma.parse('asdsad, asdasd, asd, asd:'));
+console.log(parser.binaryParser.parse(' | dsf'));
 
 
 let altSeqTest = combin.seqAlt(parserIdent, parserComma);

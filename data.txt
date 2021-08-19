@@ -1,9 +1,13 @@
 var 
-    zy, z, x: logical;
- 
+    zy, z, y, gh, x: logical;
+begin 
     zy := zy ^ 1 | 0;
-    zy := (1 ^ (z | x)); 
+    zy := (1 ^ (z | x));
+    y  := 1 ^ 0 | z & y;
+    gh := (y & (z ^ 1)); 
 end
+
+
 
 
 
