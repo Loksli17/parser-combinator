@@ -1,5 +1,5 @@
-import ErrorFabric from '../../libs/ErrorFabric';
-import * as combin from '../../libs/combin';
+import ErrorFactory from '../../libs/ErrorFactory';
+import * as combin  from '../../libs/combin';
 
 
 //@return constParser without Error handler
@@ -11,6 +11,6 @@ export default {
     //@return Parser: string -> [constant, other string] | Error
     constParser: combin.monadBind(
         constParser, 
-        ErrorFabric('idenificator'),
+        ErrorFactory('idenificator'),
     ),
 }

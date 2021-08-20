@@ -1,5 +1,5 @@
-import ErrorFabric from '../../libs/ErrorFabric';
-import * as combin from '../../libs/combin';
+import ErrorFactory from '../../libs/ErrorFactory';
+import * as combin  from '../../libs/combin';
 
 
 const
@@ -51,16 +51,16 @@ export default {
 
     equalParser: combin.monadBind(
         equalParser, 
-        ErrorFabric(':='),
+        ErrorFactory(':='),
     ),
 
     unaryParser: combin.monadBind(
         unaryParser,
-        ErrorFabric('!'),
+        ErrorFactory('!'),
     ),
 
     binaryParser: combin.monadBind(
         binaryParser,
-        ErrorFabric('| or ^ or &'),
+        ErrorFactory('| or ^ or &'),
     ),
 }

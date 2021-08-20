@@ -1,5 +1,5 @@
-import ErrorFabric from '../../libs/ErrorFabric';
-import * as combin from '../../libs/combin';
+import ErrorFactory from '../../libs/ErrorFactory';
+import * as combin  from '../../libs/combin';
 
 
 const
@@ -18,18 +18,18 @@ export default {
     //@return Parser: string -> [',', other string] | Error
     commaParser: combin.monadBind(
         commaParser,
-        ErrorFabric(','),
+        ErrorFactory(','),
     ),
     
     //@return Parser: string -> [':', other string] | Error
     colonParser: combin.monadBind(
         colonParser,
-        ErrorFabric(':'),
+        ErrorFactory(':'),
     ),
 
     //@return Parser: string -> [';', other string] | Error
     semicolonParser: combin.monadBind(
         semicolonParser,
-        ErrorFabric(';'),
+        ErrorFactory(';'),
     ),
 }

@@ -1,5 +1,5 @@
-import ErrorFabric from '../../libs/ErrorFabric';
-import * as combin from '../../libs/combin';
+import ErrorFactory from '../../libs/ErrorFactory';
+import * as combin  from '../../libs/combin';
 
 
 //@return identParser without Error handler
@@ -11,6 +11,6 @@ export default {
     //@return Parser: string -> [identificator, other string] | Error
     identParser: combin.monadBind(
         identParser, 
-        ErrorFabric('identificator'),
+        ErrorFactory('identificator'),
     ),
 }

@@ -1,5 +1,5 @@
-import ErrorFabric from '../../libs/ErrorFabric';
-import * as combin from '../../libs/combin';
+import ErrorFactory from '../../libs/ErrorFactory';
+import * as combin  from '../../libs/combin';
 
 
 const
@@ -48,24 +48,24 @@ export default {
     //@return Parser: string -> ['var', other string] | Error
     varParser: combin.monadBind(
         varParser,
-        ErrorFabric('var'),
+        ErrorFactory('var'),
     ),
     
     //@return Parser: string -> ['begin', other string] | Error
     beginParser: combin.monadBind(
         beginParser,
-        ErrorFabric('begin'),
+        ErrorFactory('begin'),
     ),
     
     //@return Parser: string -> ['end', other string] | Error
     endParser: combin.monadBind(
         endParser,
-        ErrorFabric('end'),
+        ErrorFactory('end'),
     ),
 
     //@return Parser: string -> ['logical, other string] | Error
     logicalParser: combin.monadBind(
         logicalParser,
-        ErrorFabric('logical'),
+        ErrorFactory('logical'),
     ),
 }
