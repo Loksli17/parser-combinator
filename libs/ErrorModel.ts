@@ -13,7 +13,6 @@ class ErrorModel{
         console.error(`Error: ${this.message} after:\n ${fullText.replace(this.input, '')}`);
         process.exit(0);
     }
-
 }
 
 export default ErrorModel;
