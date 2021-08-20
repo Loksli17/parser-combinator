@@ -23,12 +23,9 @@ interface manyRes extends parserRes{
 }
 
 
-let
-    //@return Parser: string -> [term, other string]
-    genTerm = (reg_: RegExp): Parser => {
-        return new Parser(() => {
-
-        });
+// let
+//     //@return Parser: string -> [term, other string]
+//     genTerm = (reg_: RegExp): Parser => {
         // return new Parser((str_: string): genTermRes | null => {
         //     // console.log('genTerm:', str_);
         //     str_ = str_.replace(/^\s*/, ''); //trum many spaces
@@ -38,9 +35,9 @@ let
         //         input : str_.replace(arr[0], ''),
         //     }
         // });
-
-    };
 /*
+    };
+
 
     //_>> @return Parser: [Parser A, function] -> new Parser 
     monadBind = (a_: Parser, f_: Function): Parser => {
