@@ -1,51 +1,31 @@
+"use strict";
+exports.__esModule = true;
+exports.functor = exports.genTerm = void 0;
 // import Error  from './libs/ErrorModel';
-import Parser from './libs/ParseModel';
-
-
-interface parserRes{
-    result: any,
-    input : any,
-}
-
-interface genTermRes extends parserRes{
-    result: string,
-    input : string,
-}
-
-interface seqAppRes extends parserRes{
-    result: Array<genTermRes>,
-    input : string,
-}
-
-interface manyRes extends parserRes{
-    result: Array<string>,
-    input : string,
-}
-
-
+var ParseModel_1 = require("./libs/ParseModel");
 // let
 //     //@return Parser: string -> [term, other string]
 //     genTerm = (reg_: RegExp): Parser => {
-        // return new Parser((str_: string): genTermRes | null => {
-        //     // console.log('genTerm:', str_);
-        //     str_ = str_.replace(/^\s*/, ''); //trum many spaces
-        //     let arr: RegExpMatchArray | null = str_.match(reg_);
-        //     return arr == null ? null : {
-        //         result: arr[0],
-        //         input : str_.replace(arr[0], ''),
-        //     }
-        // });
+// return new Parser((str_: string): genTermRes | null => {
+//     // console.log('genTerm:', str_);
+//     str_ = str_.replace(/^\s*/, ''); //trum many spaces
+//     let arr: RegExpMatchArray | null = str_.match(reg_);
+//     return arr == null ? null : {
+//         result: arr[0],
+//         input : str_.replace(arr[0], ''),
+//     }
+// });
 /*
     };
 
 
-    //_>> @return Parser: [Parser A, function] -> new Parser 
+    //_>> @return Parser: [Parser A, function] -> new Parser
     monadBind = (a_: Parser, f_: Function): Parser => {
         // return new Parser((input: string): genTermRes | null => {
         //     let res = a_.parse(input);
         //     if(res == null) return f_(null).parse(input);
         //     let newParser = f_(res.result); //return parser
-        //     return newParser.parse(res.input); 
+        //     return newParser.parse(res.input);
         // });
     },
 
@@ -115,8 +95,8 @@ interface manyRes extends parserRes{
     oneOrMany = (a_: Parser): Parser => {
         // return new Parser((str_: string): manyRes | null => {
 
-        //     let 
-        //         tempInput: string            = '', 
+        //     let
+        //         tempInput: string            = '',
         //         resA     : parserRes | null  = a_.parse(str_),
         //         res      : Array<any>        = [];
 
@@ -128,7 +108,7 @@ interface manyRes extends parserRes{
         //     while(true){
         //         resA = a_.parse(resA.input);
         //         if(resA == null) break;
-        //         tempInput = resA.input; 
+        //         tempInput = resA.input;
         //         res.push(resA.result);
         //     }
 
@@ -141,71 +121,31 @@ interface manyRes extends parserRes{
     
     };
     */
-
-
-const 
-    genTerm = (reg_: RegExp): Parser => {
-        return new Parser((str_: string) => {
-            str_ = str_.replace(/^\s*/, '');
-            let regExpResultArr: RegExpMatchArray | null = str_.match(reg_);
-
-            return regExpResultArr == null ? null : {
-                result: regExpResultArr[0],
-                input : str_.replace(regExpResultArr[0], '')
-            };
-        })
-    },
-
-    //! THINKING ABOUT PROMISE WORK HEEEERE!!!!
-    functor = (p_: Parser, f_: Function): Parser => {
-        return new Parser((str_: string) => {
-            let res = p_.createPromise(str_);
-            if(res == null) return null;
-            return f_(res);
-        })
-    }
-    
-    // functor = new Promise((resolve, reject) => {
-
+var genTerm = function (reg_) {
+    return new ParseModel_1["default"](function (str_) {
+        str_ = str_.replace(/^\s*/, '');
+        var regExpResultArr = str_.match(reg_);
+        return regExpResultArr == null ? null : {
+            result: regExpResultArr[0],
+            input: str_.replace(regExpResultArr[0], '')
+        };
+    });
+    // return new Promise((resolve: Function, reject: Function) => {
     //     let 
-    //         parser: Promise<unknown> = genTerm,
-    //         func  : Function = (value: genTermRes) => {
-    //             return {
-    //                 result: 'Var',
-    //                 input : value.input,
-    //             }
-    //         };
-
-    //     parser.then(value => {
-    //         let resolveData: genTermRes | null = value == null ? null : func(value);
-    //         resolve(resolveData);
-    //     });
-
+    //         str: string = "var x, y, z, u: logical;",
+    //         reg: RegExp = reg_;
+    //     str.replace(/^\s*/, '');
+    //     let regExpResultArr: RegExpMatchArray | null = str.match(reg);
+    //     let resolveData: genTermRes | null = regExpResultArr == null ? null : {
+    //         result: regExpResultArr[0],
+    //         input : str.replace(regExpResultArr[0], '')
+    //     };
+    //     resolve(resolveData);
+    //     reject(new Error('error'));
     // });
-
-export {
-    genTermRes,
-    parserRes,
-    seqAppRes,
-    manyRes,
-
-    genTerm, 
-    
-    // monadBind,
-    functor,
-    // seqAlt, 
-
-    // seqApp,
-    // seqAppL,
-    // seqAppR,
-
-    // oneOrMany
+}, functor = function () {
+    return new Promise(function (resolve, reject) {
+    });
 };
-
-
-
-
-    
-
-    
-
+exports.genTerm = genTerm;
+exports.functor = functor;

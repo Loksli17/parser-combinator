@@ -1,57 +1,26 @@
 
 // ! PROMISE CONSTUCTOR?
 
-interface parserRes{
+interface ParserRes{
     result: any,
     input : any,
 }
 
-interface genTermRes extends parserRes{
-    result: string,
-    input : string,
-}
+export default class Parser{
 
+    private parserFunction: (str: string) => ParserRes | null;
 
-const 
-    genTerm = new Promise((resolve, reject) => {
+    constructor(parse_: (str: string) => ParserRes | null){
+        this.parserFunction = parse_;
+    }
 
-        let 
-            str = "var x, y, z, u: integer;",
-            reg = /^var\s+/ig;
-        str.replace(/^\s*/, '');
+    public createPromise(str_: string): Promise<ParserRes>{
+        return new Promise((resolve: Function, reject: Function) => {
 
-        let regExpResultArr: RegExpMatchArray | null = str.match(reg);
-        let resolveData: genTermRes | null = regExpResultArr == null ? null : {
-            result: regExpResultArr[0],
-            input : str.replace(regExpResultArr[0], '')
-        };
+            let resolveData: ParserRes | null = this.parserFunction(str_);
 
-        resolve(resolveData);
-        reject(new Error('error'));
-    }),
-    
-    functor = new Promise((resolve, reject) => {
-
-        let 
-            parser: Promise<unknown> = genTerm,
-            func  : Function = (value: genTermRes) => {
-                return {
-                    result: 'Var',
-                    input : value.input,
-                }
-            };
-
-        parser.then(value => {
-            let resolveData: genTermRes | null = value == null ? null : func(value);
             resolve(resolveData);
+            reject(new Error('error'));            
         });
-
-    });
-
-
-
-
-export default {
-    genTerm,
-    functor,
-};
+    }
+}
