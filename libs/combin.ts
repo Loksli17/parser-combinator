@@ -1,5 +1,5 @@
-import Error  from './libs/ErrorModel';
-import Parser from './libs/ParseModel';
+import Error  from './ErrorModel';
+import Parser from './ParseModel';
 
 
 interface parserRes{
@@ -26,32 +26,32 @@ interface manyRes extends parserRes{
 let
     //@return Parser: string -> [term, other string]
     genTerm = (reg_: RegExp): Parser => {
-        return new Parser((str_: string): genTermRes | null => {
-            // console.log('genTerm:', str_);
-            str_ = str_.replace(/^\s*/, ''); //trum many spaces
-            let arr: RegExpMatchArray | null = str_.match(reg_);
+        return new Parser((input_: string): genTermRes | null => {
+            input_ = input_.replace(/^\s*/, ''); //trum many spaces
+            let arr: RegExpMatchArray | null = input_.match(reg_);
+
             return arr == null ? null : {
                 result: arr[0],
-                input : str_.replace(arr[0], ''),
+                input : input_.replace(arr[0], ''),
             }
         });
     },
 
-
     //_>> @return Parser: [Parser A, function] -> new Parser 
     monadBind = (a_: Parser, f_: Function): Parser => {
-        return new Parser((input: string): genTermRes | null => {
-            let res = a_.parse(input);
-            if(res == null) return f_(null).parse(input);
+        return new Parser((input_: string): genTermRes | null => {
+            let res = a_.parse(input_);
+            if(res == null) return f_(null).parse(input_);
+            
             let newParser = f_(res.result); //return parser
             return newParser.parse(res.input); 
         });
     },
 
-    //<^>
+    //<^> @return Parser: [Parser, Function] -> new Parser
     functor = (a_: Parser, f_: Function): Parser => {
-        return new Parser((str_: string) => {
-            let res = a_.parse(str_);
+        return new Parser((input_: string) => {
+            let res = a_.parse(input_);
             if(res == null) return null;
             return f_(res);
         })

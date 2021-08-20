@@ -25,7 +25,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.languageParser = exports.assignmentListParser = exports.assignmentParser = exports.expressionParser = exports.varDecParser = exports.operandParser = exports.identParser = exports.binaryParser = exports.unaryParser = exports.equalParser = exports.endParser = exports.beginParser = exports.identListParser = exports.logicalParser = exports.varParser = void 0;
 const ParseModel_1 = __importDefault(require("./libs/ParseModel"));
 const ErrorModel_1 = __importDefault(require("./libs/ErrorModel"));
-const combin = __importStar(require("./combin"));
+const combin = __importStar(require("./libs/combin"));
 let varParser = combin.functor(combin.genTerm(/^var\s+/ig), (res_) => {
     if (res_ == null)
         return null;

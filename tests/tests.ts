@@ -1,6 +1,6 @@
 
-import * as combin from './combin';
-import * as parser from './parser';
+import * as combin from '../libs/combin';
+import * as parser from '../parser';
 
 //error test
 let testError = parser.identParser.parse('asd, sdf, sdf, df');

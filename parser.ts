@@ -1,6 +1,6 @@
 import Parser      from './libs/ParseModel';
 import Error       from './libs/ErrorModel';
-import * as combin from './combin';
+import * as combin from './libs/combin';
 
 
 let 

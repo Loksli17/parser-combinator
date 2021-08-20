@@ -1,9 +1,0 @@
-Var zy, z, y, gh, x: Boolean; 
- Begin 
- 	zy = zy .XOR. 1 .OR. 0;
-	zy = (1 .XOR. (z .OR. x));
-	y = 1 .XOR. 0 .OR. z .AND. y;
-	gh = (y .AND. (z .XOR. 1)); 
- End
-
- 

@@ -1,0 +1,4 @@
+Var zy, z, y, gh, x: Boolean; 
+ Begin 
+ 	zy = zy .XOR. 1 .OR. 0; 
+ End
