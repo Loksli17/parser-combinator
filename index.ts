@@ -30,8 +30,8 @@ const fileData: string = fs.readFileSync('data.txt','utf-8');
 
 const 
     varParser   = combin.genTerm(/^var\s+/ig),
-    identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig); 
-
+    identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig);
+    
 varParser.createPromise('var kek: logical;').then((value: any) => {
     console.log('1 => \n', value);
     return identParser.createPromise(value.input);

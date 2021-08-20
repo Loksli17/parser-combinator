@@ -25,6 +25,7 @@ var fileData = fs.readFileSync('data.txt', 'utf-8');
     });
 */
 var varParser = combin.genTerm(/^var\s+/ig), identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig);
+// varParser.createPromise('var kek: logical;').then(value => console.log(value, 'parser'));
 varParser.createPromise('var kek: logical;').then(function (value) {
     console.log('1 => \n', value);
     return identParser.createPromise(value.input);

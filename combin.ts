@@ -1,5 +1,5 @@
 // import Error  from './libs/ErrorModel';
-import Parser from './libs/ParseModel';
+import Parser, {ParserRes} from './libs/ParseModel';
 
 
 interface parserRes{
@@ -149,39 +149,32 @@ const
             str_ = str_.replace(/^\s*/, '');
             let regExpResultArr: RegExpMatchArray | null = str_.match(reg_);
 
-            return regExpResultArr == null ? null : {
-                result: regExpResultArr[0],
-                input : str_.replace(regExpResultArr[0], '')
-            };
+            return new Promise((resolve, reject) => {
+                resolve(regExpResultArr == null ? null : {
+                    result: regExpResultArr[0],
+                    input : str_.replace(regExpResultArr[0], ''),
+                });
+                reject(new Error('err'));
+            });
         })
-    },
+    };
 
     //! THINKING ABOUT PROMISE WORK HEEEERE!!!!
-    functor = (p_: Parser, f_: Function): Parser => {
-        return new Parser((str_: string) => {
-            let res = p_.createPromise(str_);
-            if(res == null) return null;
-            return f_(res);
-        })
-    }
-    
-    // functor = new Promise((resolve, reject) => {
+    /*
+    functor = (p_: Parser, f_: (result: ParserRes | null) => ParserRes | null): Parser => {
+        // return new Parser((str_: string) => {
+            // return p_.createPromise(str_).then(value => f_(value));
 
-    //     let 
-    //         parser: Promise<unknown> = genTerm,
-    //         func  : Function = (value: genTermRes) => {
-    //             return {
-    //                 result: 'Var',
-    //                 input : value.input,
-    //             }
-    //         };
+        // });
+        // return new Parser((str_: string) => {
+        //     p_.createPromise(str_).then(value => {
+        //         if(value == null) return null;
+        //         return f_(value);
+        //     });
+        // })
+    };
+    */
 
-    //     parser.then(value => {
-    //         let resolveData: genTermRes | null = value == null ? null : func(value);
-    //         resolve(resolveData);
-    //     });
-
-    // });
 
 export {
     genTermRes,
@@ -192,7 +185,7 @@ export {
     genTerm, 
     
     // monadBind,
-    functor,
+    // functor,
     // seqAlt, 
 
     // seqApp,

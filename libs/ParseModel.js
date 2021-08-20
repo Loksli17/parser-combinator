@@ -8,9 +8,10 @@ var Parser = /** @class */ (function () {
     Parser.prototype.createPromise = function (str_) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            var resolveData = _this.parserFunction(str_);
-            resolve(resolveData);
-            reject(new Error('error'));
+            _this.parserFunction(str_).then(function (value) {
+                resolve(value);
+                reject(new Error('error'));
+            });
         });
     };
     return Parser;

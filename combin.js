@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.functor = exports.genTerm = void 0;
+exports.genTerm = void 0;
 // import Error  from './libs/ErrorModel';
 var ParseModel_1 = require("./libs/ParseModel");
 // let
@@ -125,27 +125,13 @@ var genTerm = function (reg_) {
     return new ParseModel_1["default"](function (str_) {
         str_ = str_.replace(/^\s*/, '');
         var regExpResultArr = str_.match(reg_);
-        return regExpResultArr == null ? null : {
-            result: regExpResultArr[0],
-            input: str_.replace(regExpResultArr[0], '')
-        };
-    });
-    // return new Promise((resolve: Function, reject: Function) => {
-    //     let 
-    //         str: string = "var x, y, z, u: logical;",
-    //         reg: RegExp = reg_;
-    //     str.replace(/^\s*/, '');
-    //     let regExpResultArr: RegExpMatchArray | null = str.match(reg);
-    //     let resolveData: genTermRes | null = regExpResultArr == null ? null : {
-    //         result: regExpResultArr[0],
-    //         input : str.replace(regExpResultArr[0], '')
-    //     };
-    //     resolve(resolveData);
-    //     reject(new Error('error'));
-    // });
-}, functor = function () {
-    return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve, reject) {
+            resolve(regExpResultArr == null ? null : {
+                result: regExpResultArr[0],
+                input: str_.replace(regExpResultArr[0], '')
+            });
+            reject(new Error('err'));
+        });
     });
 };
 exports.genTerm = genTerm;
-exports.functor = functor;
