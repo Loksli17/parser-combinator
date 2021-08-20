@@ -157,23 +157,18 @@ const
                 reject(new Error('err'));
             });
         })
-    };
+    },
 
     //! THINKING ABOUT PROMISE WORK HEEEERE!!!!
-    /*
     functor = (p_: Parser, f_: (result: ParserRes | null) => ParserRes | null): Parser => {
-        // return new Parser((str_: string) => {
-            // return p_.createPromise(str_).then(value => f_(value));
-
-        // });
-        // return new Parser((str_: string) => {
-        //     p_.createPromise(str_).then(value => {
-        //         if(value == null) return null;
-        //         return f_(value);
-        //     });
-        // })
+0
+        return new Parser((str_: string) => {
+            return p_.createPromise(str_).then(value => {
+                if(value == null) return null;
+                return f_(value);
+            });
+        })
     };
-    */
 
 
 export {
@@ -185,7 +180,7 @@ export {
     genTerm, 
     
     // monadBind,
-    // functor,
+    functor,
     // seqAlt, 
 
     // seqApp,

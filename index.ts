@@ -1,5 +1,5 @@
 import * as fs     from 'fs';
-import ParseModel  from './libs/ParseModel';
+import ParseModel, { ParserRes }  from './libs/ParseModel';
 import * as combin from './combin';
 // import * as parser from './parser';
 
@@ -31,11 +31,19 @@ const fileData: string = fs.readFileSync('data.txt','utf-8');
 const 
     varParser   = combin.genTerm(/^var\s+/ig),
     identParser = combin.genTerm(/^\b((?!begin|var|end)([a-z]+))\b/ig);
-    
-varParser.createPromise('var kek: logical;').then((value: any) => {
-    console.log('1 => \n', value);
-    return identParser.createPromise(value.input);
-}).then(value => {
-    console.log('2 => \n', value);
+
+const VarParser = combin.functor(varParser, (res: ParserRes | null) => {
+    if (res == null) return null;
+    return {
+        result: 'Var',
+        input : res.input,
+    }
 });
+    
+// varParser.createPromise('var kek: logical;').then((value: any) => {
+//     console.log('1 => \n', value);
+//     return identParser.createPromise(value.input);
+// }).then(value => {
+//     console.log('2 => \n', value);
+// });
 
